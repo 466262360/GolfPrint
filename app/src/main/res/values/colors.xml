@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#5789FF</color>
+    <color name="colorPrimaryDark">#5789FF</color>
+    <color name="colorAccent">#5789FF</color>
+    <color name="color_login_bg">#3050E4</color>
+    <color name="color_white">#ffffff</color>
+    <color name="color_white_alpha_90">#E6ffffff</color>
+    <color name="color_white_alpha_86">#DBffffff</color>
+    <color name="color_white_alpha_66">#66ffffff</color>
+    <color name="color_white_alpha_40">#66ffffff</color>
+    <color name="color_text_1">#666666</color>
+    <color name="color_text_2">#A76B1C</color>
+    <color name="color_text_3">#333333</color>
+    <color name="color_text_4">#5789FF</color>
+    <color name="color_text_5">#AE2B2A</color>
+    <color name="color_text_6">#999999 </color>
+    <color name="color_gray_1">#F8F8F8</color>
+    <color name="color_gray_2">#EEEEEE</color>
+    <color name="color_main_bg">#5589F6</color>
+    <color name="color_main_bg_alpha_90">#F55589F6</color>
+    <color name="color_main_bg_alpha_20">#335589F6</color>
+    <color name="color_main_bg_alpha_96">#F55589F6</color>
+    <color name="color_gradient_1">#FFF4B6</color>
+    <color name="color_gradient_2">#FFD7BC</color>
+    <color name="color_gradient_3">#FDA097</color>
+    <color name="color_gradient_4">#FFD7BC</color>
+    <color name="color_gradient_5">#5D89ED</color>
+    <color name="color_gradient_6">#805D89ED</color>
+    <color name="color_gradient_7">#F48A7F</color>
+    <color name="color_gradient_8">#FFD7BC</color>
+    <color name="color_gradient_9">#AFAFAF</color>
+    <color name="color_gradient_10">#F3F3F3</color>
+    <color name="color_btn">#F48A80</color>
+    <color name="color_btn_alpha_24">#3DF48A80</color>
+    <color name="color_stroke_1">#63CEA3</color>
+    <color name="color_stroke_1_alpha_24">#3D63CEA3</color>
+    <color name="color_stroke_2">#F07B84</color>
+    <color name="color_stroke_3">#66999999</color>
+    <color name="color_stroke_4">#DDDDDD</color>
+    <color name="color_stroke_alpha_40">#66DDDDDD</color>
+    <color name="color_transparent">@android:color/transparent</color>
+    <color name="color_text_a_60">#99333333</color>
+    <color name="color_line_a_10">#1A000000</color>
+</resources>

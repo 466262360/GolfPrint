@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cl_item"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/shape_white_corner"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/iv_sel"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginBottom="40dp"
+            android:layout_marginEnd="26dp"
+            android:layout_marginTop="40dp"
+            android:background="@drawable/order_sel_true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_order_id"
+            app:layout_constraintVertical_chainStyle="packed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:textColor="@color/color_text_3"
+            app:layout_constraintBottom_toTopOf="@+id/tv_people"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_people"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="11dp"
+            android:textColor="@color/color_text_3"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_order_id" />
+
+        <TextView
+            android:id="@+id/tv_caves"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="60dp"
+            android:layout_marginTop="11dp"
+            android:textColor="@color/color_text_3"
+            app:layout_constraintStart_toEndOf="@+id/tv_people"
+            app:layout_constraintTop_toBottomOf="@+id/tv_order_id" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <TextView
+        android:id="@+id/tv_date"
+        android:gravity="center"
+        android:paddingLeft="18dp"
+        android:paddingRight="56dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/color_text_5"
+        android:background="@drawable/shape_order_bottom_true"
+        android:layout_width="wrap_content"
+        android:layout_height="25dp"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

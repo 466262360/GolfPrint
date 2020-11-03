@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tv_1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="20dp"
+        android:textColor="@color/color_text_3"
+        android:text="@string/data_4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <RadioGroup
+        android:id="@+id/rg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginEnd="53dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_1">
+
+        <RadioButton
+            android:id="@+id/rb_week"
+            android:layout_width="35dp"
+            android:gravity="center"
+            android:layout_height="wrap_content"
+            android:background="@drawable/sel_rg"
+            android:button="@null"
+            android:text="@string/data_1"
+            android:textColor="@color/sel_rg_text_color"
+            android:checked="true"
+            android:textSize="12sp"
+            android:layout_marginEnd="20dp"
+            />
+
+        <RadioButton
+            android:id="@+id/rb_month"
+            android:layout_width="35dp"
+            android:gravity="center"
+            android:textColor="@color/sel_rg_text_color"
+            android:layout_height="wrap_content"
+            android:background="@drawable/sel_rg"
+            android:button="@null"
+            android:textSize="12sp"
+            android:text="@string/data_2"
+            android:layout_marginEnd="20dp"
+            />
+
+        <RadioButton
+            android:id="@+id/rb_year"
+            android:layout_width="35dp"
+            android:gravity="center"
+            android:textColor="@color/sel_rg_text_color"
+            android:layout_height="wrap_content"
+            android:background="@drawable/sel_rg"
+            android:button="@null"
+            android:textSize="12sp"
+            android:text="@string/data_3" />
+    </RadioGroup>
+
+<View
+    android:id="@+id/line_1"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintTop_toBottomOf="@+id/tv_1"
+    android:layout_marginTop="4dp"
+    android:background="@color/color_text_4"
+    android:layout_width="0dp"
+    android:layout_marginStart="32dp"
+    android:layout_marginEnd="32dp"
+    android:layout_height="0.5dp"/>
+    <include
+        android:id="@+id/top_1"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/line_1"
+        layout="@layout/item_consume_rv_top"/>
+<androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/rv_consume"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintTop_toBottomOf="@+id/top_1"
+    app:layout_constraintBottom_toTopOf="@+id/guideline"
+    android:layout_width="0dp"
+    android:layout_marginStart="24dp"
+    android:layout_marginEnd="24dp"
+    android:layout_height="0dp"/>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <TextView
+        android:id="@+id/tv_2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rv_consume"
+        android:layout_marginStart="32dp"
+        android:textColor="@color/color_text_3"
+        android:text="@string/data_4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <View
+        android:id="@+id/line_2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_2"
+        android:layout_marginTop="4dp"
+        android:background="@color/color_text_4"
+        android:layout_width="0dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:layout_height="0.5dp"/>
+    <include
+        android:id="@+id/top_2"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/line_2"
+        layout="@layout/item_record_rv_top"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_record"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/top_2" />
+</androidx.constraintlayout.widget.ConstraintLayout>

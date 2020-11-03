@@ -1,0 +1,120 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.2"
+    defaultConfig {
+        applicationId "com.mashangyou.golfprint"
+        minSdkVersion 22
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+        flavorDimensions("golf")
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs {
+        release {
+            keyAlias KEY_ALIAS
+            keyPassword KEY_PASSWORD
+            storeFile file(KEY_FILE)
+            storePassword STORE_PASSWORD
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+
+
+
+    productFlavors {
+        golfDev {
+            buildConfigField "String", "BASE_URL", '"http://demo.smartou.com/golf/"'
+            applicationIdSuffix ".dev"
+            manifestPlaceholders = [
+                    appName: "@string/app_name_dev"
+            ]
+        }
+        golfTest {
+            buildConfigField "String", "BASE_URL", '"http://192.168.0.27:90/golf/"'
+            applicationIdSuffix ".test"
+            manifestPlaceholders = [
+                    appName: "@string/app_name_dev"
+            ]
+        }
+        golfRelease {
+            buildConfigField "String", "BASE_URL", '"http://demo.smartou.com/golf/"'
+            manifestPlaceholders = [
+                    appName: "@string/app_name"
+            ]
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            //产品名称_产品版本号_日期_软件环境
+            outputFileName = "${variant.productFlavors[0].name}_" +
+                    "v${variant.versionName}_" +
+                    "${releaseTime()}_" +
+                    "${variant.buildType.name}" +
+                    ".apk"
+        }
+    }
+
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    sourceSets.main {
+        jniLibs.srcDir 'libs'
+    }
+}
+def releaseTime() {
+    return new Date().format("yyyy-MM-dd")
+}
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.2'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:runner:1.3.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    implementation project(path: ':scan')
+    //butterknife
+    implementation 'com.jakewharton:butterknife:10.1.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:10.1.0'
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:3.0.4'
+    implementation 'pub.devrel:easypermissions:3.0.0'
+    //gson
+    implementation 'com.google.code.gson:gson:2.8.0'
+    //retrofit
+    implementation 'com.squareup.retrofit2:retrofit:2.2.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.2.0'
+    implementation 'com.squareup.retrofit2:converter-scalars:2.2.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.2.0'
+    //okhttp3:logging-interceptor
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.6.0'
+    //rxjava
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.0'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    //.rxlifecycle2:rxlifecycle
+    implementation 'com.trello.rxlifecycle2:rxlifecycle:2.1.0'
+    implementation 'com.trello.rxlifecycle2:rxlifecycle-components:2.1.0'
+    implementation 'com.blankj:utilcode:1.17.1'
+    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    implementation 'com.github.jiusetian:EasySocket:1.7.0'
+    implementation 'org.greenrobot:eventbus:3.2.0'
+}

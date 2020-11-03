@@ -1,0 +1,2 @@
+include ':app', ':scan'
+rootProject.name='GolfPrint'
