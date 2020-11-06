@@ -9,16 +9,18 @@ import com.mashangyou.golfprint.R;
 import com.mashangyou.golfprint.api.Contant;
 import com.mashangyou.golfprint.api.DefaultObserver;
 import com.mashangyou.golfprint.api.RetrofitManager;
+import com.mashangyou.golfprint.bean.event.EventFragment;
+import com.mashangyou.golfprint.bean.event.EventScreen;
 import com.mashangyou.golfprint.bean.res.ResponseBody;
 import com.mashangyou.golfprint.ui.activity.LoginActivity;
 import com.mashangyou.golfprint.ui.activity.MainActivity;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.HashMap;
 
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import butterknife.BindView;
 import butterknife.OnClick;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -49,11 +51,7 @@ public class SettingFragment extends BaseFragment{
     void onClick(View view){
         switch (view.getId()){
             case R.id.cl_1:
-                if (getActivity()!=null){
-                    FragmentManager manager = getActivity().getSupportFragmentManager();
-                    FragmentTransaction transaction = manager.beginTransaction();
-                    transaction.replace(R.id.fl_content,new PassWordFragment()).commit();
-                }
+                EventBus.getDefault().post(new EventFragment(Contant.F_PASSWORD));
                 break;
             case R.id.btn_exit:
                 quit();

@@ -39,7 +39,7 @@ public class PublishAdapter extends BaseQuickAdapter<PublishRes.Publish,BaseView
         RecyclerView rv = baseViewHolder.getView(R.id.rv_publish_hor);
        baseViewHolder.setText(R.id.tv_time,data.getTitle());
         if (data.getInfos()!=null){
-            adapter = new PublishHorAdapter(R.layout.item_publish_hor, data.getInfos());
+            adapter = new PublishHorAdapter(R.layout.item_publish_hor, data.getInfos(),getRecyclerView().getWidth());
             LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
             layoutManager.setOrientation(RecyclerView.HORIZONTAL);
             rv.setLayoutManager(layoutManager);

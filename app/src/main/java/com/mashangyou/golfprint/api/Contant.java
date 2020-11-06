@@ -14,6 +14,16 @@ public class Contant {
     public static final int BANNER =0;
     public static final int CODE_RESULT =1;
     public static final int VERIFY =2;
+    public static final int SCAN =3;
+
+    public static final int F_ORDER =0;
+    public static final int F_RESULT =1;
+    public static final int F_DATA =2;
+    public static final int F_PUBLISH =3;
+    public static final int F_SELL =4;
+    public static final int F_SETTING =5;
+    public static final int F_VERIFY =6;
+    public static final int F_PASSWORD =7;
 
 
     public static final String PRINT_ACTION ="print_action";

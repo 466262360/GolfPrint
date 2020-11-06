@@ -2,7 +2,6 @@ package com.mashangyou.golfprint.ui.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
@@ -21,14 +20,18 @@ import com.mashangyou.golfprint.adapter.OrderMemberAdapter;
 import com.mashangyou.golfprint.api.Contant;
 import com.mashangyou.golfprint.api.DefaultObserver;
 import com.mashangyou.golfprint.api.RetrofitManager;
+import com.mashangyou.golfprint.bean.event.EventFragment;
+import com.mashangyou.golfprint.bean.event.EventPrint;
 import com.mashangyou.golfprint.bean.event.EventRvOrderId;
 import com.mashangyou.golfprint.bean.event.EventRvOrderY;
+import com.mashangyou.golfprint.bean.event.EventScreen;
 import com.mashangyou.golfprint.bean.event.EventVerifyResult;
 import com.mashangyou.golfprint.bean.res.ResponseBody;
 import com.mashangyou.golfprint.bean.res.VerifyRes;
 import com.mashangyou.golfprint.interfac.OnButtonClick;
 import com.mashangyou.golfprint.ui.activity.MainActivity;
 import com.mashangyou.golfprint.util.SerializableMap;
+import com.mashangyou.golfprint.util.USBPrinter;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -77,6 +80,7 @@ public class CodeResultFragment extends BaseFragment {
     private OnButtonClick onButtonClick;
     private SimpleDateFormat format;
     private OrderMemberAdapter orderAdapter;
+    private boolean isUse;
 
     @Override
     protected int getLayoutId() {
@@ -94,8 +98,9 @@ public class CodeResultFragment extends BaseFragment {
         format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         if (getActivity() != null) {
             ((MainActivity) getActivity()).setTopTitle(getString(R.string.title_6));
-            ((MainActivity) getActivity()).updatePresentation(Contant.CODE_RESULT);
         }
+        EventBus.getDefault().post(new EventScreen(Contant.CODE_RESULT));
+        isUse=true;
     }
 
     @OnClick({R.id.btn_cancel, R.id.btn_confirm, R.id.btn_back})
@@ -103,14 +108,11 @@ public class CodeResultFragment extends BaseFragment {
         switch (view.getId()) {
             case R.id.btn_cancel:
             case R.id.btn_back:
-                if (getActivity() != null) {
-                    FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-                    FragmentTransaction transaction = fragmentManager.beginTransaction();
-                    transaction.replace(R.id.fl_content, new OrderFragment()).commit();
-                }
+                EventBus.getDefault().post(new EventFragment(Contant.F_ORDER));
+                EventBus.getDefault().post(new EventScreen(Contant.BANNER));
                 break;
             case R.id.btn_confirm:
-                if (!TextUtils.isEmpty(orderId) && currentOrders != null) {
+                if (!TextUtils.isEmpty(orderId) && currentOrders != null&&isUse) {
                     use();
                 } else {
                     ToastUtils.showShort(getString(R.string.code_result_17));
@@ -120,6 +122,7 @@ public class CodeResultFragment extends BaseFragment {
     }
 
     private void use() {
+        isUse =false;
         showLoading();
         HashMap<String, String> hashMap = new HashMap<>();
         hashMap.put("orderId", orderId);
@@ -133,21 +136,24 @@ public class CodeResultFragment extends BaseFragment {
                     @Override
                     public void onSuccess(ResponseBody response) {
                         hideLoading();
+                        isUse =true;
                         sendPrint();
                         EventBus.getDefault().postSticky(new EventVerifyResult(orderId, getDate(currentOrders.getPlayTime())));
-                        startVerifyFragment();
+                        EventBus.getDefault().post(new EventFragment(Contant.F_VERIFY));
                     }
 
                     @Override
                     public void onFail(ResponseBody response) {
                         hideLoading();
+                        isUse =true;
                         EventBus.getDefault().postSticky(new EventVerifyResult(null, null));
-                        startVerifyFragment();
+                        EventBus.getDefault().post(new EventFragment(Contant.F_VERIFY));
                     }
 
                     @Override
                     public void onError(String s) {
                         hideLoading();
+                        isUse =true;
                     }
                 });
     }
@@ -164,23 +170,18 @@ public class CodeResultFragment extends BaseFragment {
         hashMap.put(Contant.PRINT_GOLFNAME, currentOrders.getGolfName());
         hashMap.put(Contant.PRINT_FREQUENCY, currentOrders.getFrequency());
         hashMap.put(Contant.PRINT_CURRENT_DATE, TimeUtils.getNowString(format));
-        SerializableMap map = new SerializableMap();
-        map.setMap(hashMap);
-        Bundle bundle = new Bundle();
-        bundle.putSerializable(Contant.PRINT_MAP, map);
-        Intent intent = new Intent();
-        intent.setAction(Contant.PRINT_ACTION);
-        intent.putExtra(Contant.PRINT_MAP, bundle);
-        mContext.sendBroadcast(intent);
+//        SerializableMap map = new SerializableMap();
+//        map.setMap(hashMap);
+//        Bundle bundle = new Bundle();
+//        bundle.putSerializable(Contant.PRINT_MAP, map);
+//        Intent intent = new Intent();
+//        intent.setAction(Contant.PRINT_ACTION);
+//        intent.putExtra(Contant.PRINT_MAP, bundle);
+//        mContext.sendBroadcast(intent);
+        EventBus.getDefault().post(new EventPrint(hashMap));
     }
 
-    private void startVerifyFragment() {
-        if (getActivity() != null) {
-            FragmentManager manager = getActivity().getSupportFragmentManager();
-            FragmentTransaction transaction = manager.beginTransaction();
-            transaction.replace(R.id.fl_content, new VerifyResultFragment()).commit();
-        }
-    }
+
 
     @Subscribe(threadMode = ThreadMode.POSTING, sticky = true)
     public void receive(VerifyRes data) {

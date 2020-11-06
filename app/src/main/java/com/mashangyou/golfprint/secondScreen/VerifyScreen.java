@@ -102,7 +102,9 @@ public class VerifyScreen extends Presentation {
     /**  EventBus解注册  */
     @Override
     public void dismiss() {
-        EventBus.getDefault().unregister(this);
+        if(EventBus.getDefault().isRegistered(this)){
+            EventBus.getDefault().unregister(this);
+        }
         super.dismiss();
     }
 }

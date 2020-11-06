@@ -80,13 +80,13 @@ public class CodeResultScreen extends Presentation {
         rvOrder.setAdapter(orderAdapter);
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(threadMode = ThreadMode.POSTING)
     public void receiveEvent(EventRvOrderY eventRvOrder){
         int y=rvOrder.getMeasuredHeight()*eventRvOrder.getY()/eventRvOrder.getH();
         rvOrder.scrollBy(0,y);
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(threadMode = ThreadMode.POSTING)
     public void receiveEvent(EventRvOrderId eventRvOrderId){
         if (!TextUtils.isEmpty(eventRvOrderId.getId())){
             for (VerifyRes.Orders item : ordersList) {
@@ -136,7 +136,9 @@ public class CodeResultScreen extends Presentation {
     /**  EventBus解注册  */
     @Override
     public void dismiss() {
-        EventBus.getDefault().unregister(this);
+        if(EventBus.getDefault().isRegistered(this)){
+            EventBus.getDefault().unregister(this);
+        }
         super.dismiss();
     }
 }

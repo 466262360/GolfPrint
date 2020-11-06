@@ -9,6 +9,8 @@ import android.view.Display;
 import com.mashangyou.golfprint.R;
 import com.mashangyou.golfprint.adapter.BannerAdapter;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.ArrayList;
 
 import androidx.viewpager.widget.ViewPager;
@@ -62,6 +64,7 @@ public class BannerScreen extends Presentation {
         ArrayList<Integer> strings = new ArrayList<>();
         strings.add(R.drawable.b_1);
         strings.add(R.drawable.b_2);
+        strings.add(R.drawable.b_3);
         BannerAdapter bannerAdapter = new BannerAdapter();
         bannerAdapter.setData(strings);
         if (bannerAdapter.getDataSize() == 0) {
@@ -71,5 +74,18 @@ public class BannerScreen extends Presentation {
         int currentPosition = Integer.MAX_VALUE / 2 - m;
         mVp.setCurrentItem(currentPosition);
         mVp.setAdapter(bannerAdapter);
+    }
+
+    @Override
+    public void show() {
+        super.show();
+
+    }
+
+    /**  EventBus解注册  */
+    @Override
+    public void dismiss() {
+        mHandler.stopAuto();
+        super.dismiss();
     }
 }

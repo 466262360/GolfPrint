@@ -1,11 +1,15 @@
 package com.mashangyou.golfprint.ui.activity;
 
+import android.content.Context;
+import android.media.MediaRouter;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.UnderlineSpan;
+import android.view.Display;
 import android.view.KeyEvent;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
@@ -24,6 +28,8 @@ import com.mashangyou.golfprint.api.DefaultObserver;
 import com.mashangyou.golfprint.api.RetrofitManager;
 import com.mashangyou.golfprint.bean.res.LoginRes;
 import com.mashangyou.golfprint.bean.res.ResponseBody;
+import com.mashangyou.golfprint.secondScreen.BannerScreen;
+
 import java.util.HashMap;
 import androidx.core.content.ContextCompat;
 import butterknife.BindView;
@@ -47,6 +53,9 @@ public class LoginActivity extends BaseActivity{
     ImageView leftBg;
     private String mUser;
     private String mPassWord;
+    private MediaRouter mMediaRouter;
+    private BannerScreen mPresentation;
+
     @Override
     protected int getLayoutId() {
         return R.layout.activity_login;
@@ -78,6 +87,7 @@ public class LoginActivity extends BaseActivity{
 
     @Override
     protected void initData() {
+        mMediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
         Glide.with(this)
                 .load(R.drawable.login_bg_1)
                 .transform(new CenterCrop(), new RoundedCorners(ConvertUtils.dp2px(11)))
@@ -87,6 +97,33 @@ public class LoginActivity extends BaseActivity{
         etPassWord.setText(SPUtils.getInstance().getString(Contant.PASS_WORD));
         if (!TextUtils.isEmpty(etUser.getText().toString())){
             etUser.setSelection(etUser.getText().toString().length());
+        }
+        updatePresentation();
+    }
+
+    public void updatePresentation() {
+        MediaRouter.RouteInfo route = mMediaRouter.getSelectedRoute(
+                MediaRouter.ROUTE_TYPE_LIVE_VIDEO);
+        Display presentationDisplay = route != null ? route.getPresentationDisplay() : null;
+        if (mPresentation != null) {
+            mPresentation.dismiss();
+            mPresentation = null;
+        }
+        if (presentationDisplay != null) {
+            mPresentation = new BannerScreen(this, presentationDisplay);
+        }
+        try {
+            mPresentation.show();
+        } catch (WindowManager.InvalidDisplayException ex) {
+
+            mPresentation = null;
+        }
+    }
+
+    public void dissmissScreen() {
+        if (mPresentation != null) {
+            mPresentation.dismiss();
+            mPresentation = null;
         }
     }
 
@@ -146,5 +183,11 @@ public class LoginActivity extends BaseActivity{
                     }
                 });
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dissmissScreen();
     }
 }

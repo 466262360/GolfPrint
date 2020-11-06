@@ -8,7 +8,8 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
-import android.text.TextUtils;
+import android.os.Handler;
+import android.os.Message;
 
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
@@ -18,13 +19,14 @@ import com.mashangyou.golfprint.usbsdk.CallbackInterface;
 import com.mashangyou.golfprint.usbsdk.Common;
 import com.mashangyou.golfprint.usbsdk.Device;
 import com.mashangyou.golfprint.usbsdk.DeviceParameters;
+import com.mashangyou.golfprint.usbsdk.PrintStatesCallback;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
-import static com.mashangyou.golfprint.util.ESCUtil.ESC;
+import androidx.annotation.NonNull;
 
 /**
  * Created by Administrator on 2020/10/28.
@@ -59,6 +61,7 @@ public class USBPrinter {
     private byte[] c7;
     private byte[] line9;
     private byte[][] cmdBytes;
+    private PrintStatesCallback printStatesCallback;
 
     public static USBPrinter getInstance() {
         if (mInstance == null) {
@@ -103,15 +106,26 @@ public class USBPrinter {
                         str.append(String.format(" %x", cbInfo.m_receiveData[i]));
                         strBuild.append(String.format("%c", (char) cbInfo.m_receiveData[i]));
                     }
-                    debug_str = debug_str + strBuild.toString();
-                    debug_strX = debug_strX + str.toString();
-                    if (debug_str.length() > (lcd_width * 8 / 10)) {
-                        debug_str = debug_str + "\n";
-
-                    }
-                    if (debug_strX.length() > (lcd_width * 8 / 10)) {
-                        debug_strX = debug_strX + "\n";
-
+                    LogUtils.d(str.toString());
+                    String receive = str.toString();
+                    String[] split = receive.split(" ");
+                    LogUtils.d(split[0] + "-" + split[1] + "-" + split[2] + "-" + split[3] + "-" + split[4]);
+                    Message message = new Message();
+                    if (split[2].equals("8")) {
+                        message.arg1 = 1;
+                        message.obj = "切刀错误";
+                        handler.sendMessage(message);
+                    } else if (split[2].equals("40")) {
+                        message.arg1 = 1;
+                        message.obj = "打印机过热";
+                        handler.sendMessage(message);
+                    } else if (split[3].equals("c")) {
+                        message.arg1 = 1;
+                        message.obj = "打印机缺纸";
+                        handler.sendMessage(message);
+                    } else {
+                        message.arg1 = 0;
+                        handler.sendMessage(message);
                     }
 
                 } catch (Exception e) {
@@ -126,7 +140,8 @@ public class USBPrinter {
         m_DeviceParameters.PortName = "";
         m_DeviceParameters.ApplicationContext = mContext;
         byte[] dx = {29, 103, 102};
-        print(dx);
+        //print(dx);
+
         if (err == Common.ERROR_CODE.SUCCESS) {
             //set the parameters to the device
             err = m_Device.setDeviceParameters(m_DeviceParameters);
@@ -146,12 +161,13 @@ public class USBPrinter {
 
             if (err == Common.ERROR_CODE.SUCCESS) {
                 //activate ASB sending
-                err = m_Device.activateASB(true, true, true, true, true, true);
+                //err = m_Device.activateASB(true, true, true, true, true, true);
                 if (err != Common.ERROR_CODE.SUCCESS) {
                     String errorString = Common.getErrorText(err);
                     ToastUtils.showShort(errorString);
                 }
             }
+            //m_Device.sendCommand("ESC 6 0");
         }
     }
 
@@ -176,39 +192,40 @@ public class USBPrinter {
         hashMap.put(Contant.PRINT_GOLFNAME, "吃饭饭方法");
         hashMap.put(Contant.PRINT_FREQUENCY, "14/18(次)  同组6/6(次)");
         hashMap.put(Contant.PRINT_CURRENT_DATE, "2020-10-30 13:12");
-            if (m_Device.isDeviceOpen()) {
-                initPrint();
-                alignCenter();
-                printNewLineText("订场消费凭证");
-                printNewLine(2);
-                alignLeft();
-                printNewLineText("会籍身份");
-                printNewLineText("姓名：    " + hashMap.get(Contant.PRINT_NAME));
-                printNewLineText("ID：      " + hashMap.get(Contant.PRINT_ID));
-                printNewLineText("订场信息");
-                printNewLineText("时间：    " + hashMap.get(Contant.PRINT_DATE));
-                printNewLineText("地点：    " + hashMap.get(Contant.PRINT_GOLFNAME));
-                if (!TextUtils.isEmpty(hashMap.get(Contant.PRINT_FREQUENCY))) {
-                    String[] split = hashMap.get(Contant.PRINT_FREQUENCY).split("同组");
-                    printNewLineText("年度剩余： " + "个人" + split[0] + " 同组" + split[1]);
-                }
-                printNewLineText("订单号：  " + hashMap.get(Contant.PRINT_ORDER));
-                printNewLineText("核销时间： " + hashMap.get(Contant.PRINT_CURRENT_DATE));
-                printNewLineText("签名");
-                printNewLine(2);
-                printNewLineText("______________________________________");
-                cutPaper();
-            }
+        if (m_Device.isDeviceOpen()) {
+            printText(PrintContract.createXxTxt(hashMap));
+        }
     }
 
     private void initPrint() {
         m_Device.sendCommand("ESC @");
     }
 
-    private void printNewLineText(String text) {
-        String command = String.format("%s \n", new Object[]{text});
+    private void doubleWH() {
+        int options = 0;
+        options |= 1;
+        options |= 16;
+        String command = String.format("GS ! %d", new Object[]{Integer.valueOf(options)});
+        m_Device.sendCommand(command);
+    }
+
+    private void defaultWH() {
+        int options = 0;
+        String command = String.format("GS ! %d", new Object[]{Integer.valueOf(options)});
+        m_Device.sendCommand(command);
+    }
+
+    public void unregisterCallback(){
+        m_Device.unregisterCallback();
+    }
+
+    public void checkPrint() {
+        m_Device.sendCommand("GS a 1");
+    }
+
+    private void printText(String text) {
         try {
-            byte[] bs = command.getBytes("gb2312");
+            byte[] bs = text.getBytes("gb2312");
             Vector<Byte> data = new Vector<Byte>(bs.length);
             for (int i = 0; i < bs.length; i++) {
                 data.add(bs[i]);
@@ -239,83 +256,12 @@ public class USBPrinter {
 
     public void printContent(Map<String, String> hashMap) {
         if (m_Device.isDeviceOpen()) {
-            initPrint();
-            alignCenter();
-            printNewLineText("订场消费凭证");
-            printNewLine(2);
-            alignLeft();
-            printNewLineText("会籍身份");
-            printNewLineText("姓名：    " + hashMap.get(Contant.PRINT_NAME));
-            printNewLineText("ID：      " + hashMap.get(Contant.PRINT_ID));
-            printNewLineText("订场信息");
-            printNewLineText("时间：    " + hashMap.get(Contant.PRINT_DATE));
-            printNewLineText("地点：    " + hashMap.get(Contant.PRINT_GOLFNAME));
-            if (!TextUtils.isEmpty(hashMap.get(Contant.PRINT_FREQUENCY))) {
-                String[] split = hashMap.get(Contant.PRINT_FREQUENCY).split("同组");
-                printNewLineText("年度剩余： " + "个人" + split[0] + " 同组" + split[1]);
-            }
-            printNewLineText("订单号：  " + hashMap.get(Contant.PRINT_ORDER));
-            printNewLineText("核销时间： " + hashMap.get(Contant.PRINT_CURRENT_DATE));
-            printNewLine(1);
-            printNewLineText("签名");
-            printNewLine(2);
-            printNewLineText("______________________________________");
-            cutPaper();
+            printText(PrintContract.createXxTxt(hashMap));
         }
 
     }
 
-
-    public void printText(String string) {
-        Common.ERROR_CODE err = Common.ERROR_CODE.SUCCESS;
-
-        font = Common.FONT.FONT_A;
-        bold = false;
-        underlined = false;
-        doubleHeight = false;
-        doubleWidth = false;
-        sleep(1000);
-        try {
-            if (m_Device.isDeviceOpen()) {
-                switch (location) {
-                    case 0:
-                        err = m_Device.selectAlignment(Common.ALIGNMENT.LEFT);
-                        if (err != Common.ERROR_CODE.SUCCESS) {
-                            String errorString = Common.getErrorText(err);
-                            ToastUtils.showShort(errorString);
-                        }
-                        break;
-                    case 1:
-                        err = m_Device.selectAlignment(Common.ALIGNMENT.CENTER);
-                        if (err != Common.ERROR_CODE.SUCCESS) {
-                            String errorString = Common.getErrorText(err);
-                            ToastUtils.showShort(errorString);
-                        }
-                        break;
-                    case 2:
-                        err = m_Device.selectAlignment(Common.ALIGNMENT.RIGHT);
-                        if (err != Common.ERROR_CODE.SUCCESS) {
-                            String errorString = Common.getErrorText(err);
-                            ToastUtils.showShort(errorString);
-                        }
-                        break;
-                }
-                if (err == Common.ERROR_CODE.SUCCESS) {
-                    err = m_Device.printString(string, font, bold, underlined, doubleHeight, doubleWidth);
-                    if (err != Common.ERROR_CODE.SUCCESS) {
-                        String errorString = Common.getErrorText(err);
-                        ToastUtils.showShort(errorString);
-                    }
-                }
-            } else {
-                ToastUtils.showShort("Device is not open");
-            }
-        } catch (Exception e) {
-            ToastUtils.showShort(e.toString() + "-" + e.getMessage());
-        }
-    }
-
-    public void cutPaper() {
+    private void cutPaper() {
         Common.ERROR_CODE err = Common.ERROR_CODE.SUCCESS;
         //test=32;
         try {
@@ -355,51 +301,30 @@ public class USBPrinter {
         // debug.d(TAG,"end sleep "+ms);
     }
 
-    public byte[] byteMerger(byte[][] byteList) {
-
-        int length = 0;
-        for (int i = 0; i < byteList.length; i++) {
-            length += byteList[i].length;
-        }
-        byte[] result = new byte[length];
-
-        int index = 0;
-        for (int i = 0; i < byteList.length; i++) {
-            byte[] nowByte = byteList[i];
-            for (int k = 0; k < byteList[i].length; k++) {
-                result[index] = nowByte[k];
-                index++;
-            }
-        }
-        for (int i = 0; i < index; i++) {
-
-        }
-        return result;
-    }
-
-    public byte[] nextLine(int lineNum) {
-        byte[] result = new byte[3];
-        result[0] = 0x1B;
-        result[1] = 0x64;
-        result[2] = 0x02;
-        return result;
-    }
-
-    public byte[] nextLine1() {
-        byte[] result = new byte[3];
-        result[0] = 0x1B;
-        result[1] = 0x64;
-        result[2] = 0x01;
-        return result;
-    }
-
-
-    public void alignLeft() {
+    private void alignLeft() {
         m_Device.sendCommand("ESC a 0");
     }
 
-    public void alignCenter() {
+    private void alignCenter() {
         m_Device.sendCommand("ESC a 1");
     }
 
+    public void setOnCallBack(PrintStatesCallback onCallBack) {
+        printStatesCallback = onCallBack;
+    }
+
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            if (msg.arg1 == 0) {
+                if (printStatesCallback != null)
+                    printStatesCallback.success();
+            } else if (msg.arg1 == 1) {
+                String error = (String) msg.obj;
+                ToastUtils.showLong(error);
+                if (printStatesCallback != null)
+                    printStatesCallback.error(error);
+            }
+        }
+    };
 }

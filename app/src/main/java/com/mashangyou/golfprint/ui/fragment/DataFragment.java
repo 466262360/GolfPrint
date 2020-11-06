@@ -1,25 +1,24 @@
 package com.mashangyou.golfprint.ui.fragment;
 
-import android.view.View;
 import android.widget.RadioGroup;
 
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.mashangyou.golfprint.R;
 import com.mashangyou.golfprint.adapter.ConsumeAdapter;
 import com.mashangyou.golfprint.adapter.TotalRecordAdapter;
 import com.mashangyou.golfprint.api.Contant;
 import com.mashangyou.golfprint.api.DefaultObserver;
 import com.mashangyou.golfprint.api.RetrofitManager;
+import com.mashangyou.golfprint.bean.event.EventScreen;
 import com.mashangyou.golfprint.bean.res.CountWriteRes;
 import com.mashangyou.golfprint.bean.res.ResponseBody;
 import com.mashangyou.golfprint.bean.res.SelectWriteRes;
 import com.mashangyou.golfprint.ui.activity.MainActivity;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import androidx.recyclerview.widget.LinearLayoutManager;

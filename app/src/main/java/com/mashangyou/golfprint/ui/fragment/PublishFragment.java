@@ -13,11 +13,16 @@ import com.mashangyou.golfprint.adapter.PublishAdapter;
 import com.mashangyou.golfprint.api.Contant;
 import com.mashangyou.golfprint.api.DefaultObserver;
 import com.mashangyou.golfprint.api.RetrofitManager;
+import com.mashangyou.golfprint.bean.event.EventCode;
+import com.mashangyou.golfprint.bean.event.EventScreen;
 import com.mashangyou.golfprint.bean.res.PublishInfoRes;
 import com.mashangyou.golfprint.bean.res.PublishListRes;
 import com.mashangyou.golfprint.bean.res.PublishRes;
 import com.mashangyou.golfprint.bean.res.ResponseBody;
+import com.mashangyou.golfprint.scan.Code;
 import com.mashangyou.golfprint.ui.activity.MainActivity;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,7 +32,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -89,7 +93,7 @@ public class PublishFragment extends BaseFragment implements DatePickerDialog.On
     private void query() {
         showLoading();
         HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("datatime",year+"-"+appendZero(month)+"-"+appendZero(day));
+        hashMap.put("datatime", year + "-" + appendZero(month+1) + "-" + appendZero(day));
         hashMap.put("token", SPUtils.getInstance().getString(Contant.ACCESS_TOKEN));
         RetrofitManager.getApi()
                 .query(hashMap)
@@ -100,6 +104,7 @@ public class PublishFragment extends BaseFragment implements DatePickerDialog.On
                     @Override
                     public void onSuccess(ResponseBody<PublishListRes> response) {
                         hideLoading();
+                        publishList.clear();
                         getList(response.getData().getList());
                     }
 
@@ -127,8 +132,7 @@ public class PublishFragment extends BaseFragment implements DatePickerDialog.On
                 tempList = new ArrayList<>();
                 tempList.add(item);
                 skuIdMap.put(simpleDateFormat.format(instance.getTimeInMillis()), tempList);
-            }
-            else {
+            } else {
                 tempList.add(item);
             }
         }
@@ -138,7 +142,7 @@ public class PublishFragment extends BaseFragment implements DatePickerDialog.On
             PublishRes.Publish item = new PublishRes.Publish();
             item.setTitle(next);
             List<PublishInfoRes> infoRes = skuIdMap.get(next);
-            if (infoRes!=null){
+            if (infoRes != null) {
                 Collections.sort(infoRes);
             }
             item.setInfos(infoRes);
@@ -170,24 +174,24 @@ public class PublishFragment extends BaseFragment implements DatePickerDialog.On
     @Override
     public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
         pickerDialog.dismiss();
-        year=i;
-        month=i1;
-        day=i2;
+        year = i;
+        month = i1;
+        day = i2;
         setDate();
-
+        query();
     }
 
     private void setDate() {
-        tvYear.setText(year+"");
+        tvYear.setText(year + "");
         tvMonth.setText(appendZero(month+1));
         tvDay.setText(appendZero(day));
     }
 
-    private String appendZero (int date) {
+    private String appendZero(int date) {
         if (date < 10) {
             return "0" + date;
         } else {
-            return ""+date;
+            return "" + date;
         }
     }
 }

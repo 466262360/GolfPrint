@@ -18,30 +18,39 @@ import android.widget.TextView;
 
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.SPUtils;
-import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.mashangyou.golfprint.R;
 import com.mashangyou.golfprint.api.Contant;
 import com.mashangyou.golfprint.api.DefaultObserver;
 import com.mashangyou.golfprint.api.RetrofitManager;
+import com.mashangyou.golfprint.bean.event.EventCode;
 import com.mashangyou.golfprint.bean.event.EventErrorCode;
+import com.mashangyou.golfprint.bean.event.EventFragment;
+import com.mashangyou.golfprint.bean.event.EventPrint;
+import com.mashangyou.golfprint.bean.event.EventScreen;
 import com.mashangyou.golfprint.bean.res.ResponseBody;
 import com.mashangyou.golfprint.bean.res.VerifyRes;
+import com.mashangyou.golfprint.scan.ScannerFragment;
 import com.mashangyou.golfprint.secondScreen.BannerScreen;
 import com.mashangyou.golfprint.secondScreen.CodeResultScreen;
+import com.mashangyou.golfprint.secondScreen.ScanScreen;
 import com.mashangyou.golfprint.secondScreen.VerifyScreen;
 import com.mashangyou.golfprint.ui.fragment.CodeResultFragment;
 import com.mashangyou.golfprint.ui.fragment.DataFragment;
 import com.mashangyou.golfprint.ui.fragment.OrderFragment;
+import com.mashangyou.golfprint.ui.fragment.PassWordFragment;
 import com.mashangyou.golfprint.ui.fragment.PublishFragment;
 import com.mashangyou.golfprint.ui.fragment.ScanErrorFragment;
 import com.mashangyou.golfprint.ui.fragment.SellFragment;
 import com.mashangyou.golfprint.ui.fragment.SettingFragment;
+import com.mashangyou.golfprint.ui.fragment.VerifyResultFragment;
 import com.mashangyou.golfprint.util.SerializableMap;
 import com.mashangyou.golfprint.util.USBPrinter;
-import com.mashangyou.scan.ScannerFragment;
+
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -109,6 +118,10 @@ public class MainActivity extends BaseActivity {
     private MediaRouter mMediaRouter;
     private Presentation mPresentation;
     private boolean isExit;
+    private int curType;
+    private boolean verify;
+    private VerifyResultFragment verifyResultFragment;
+    private PassWordFragment passWordFragment;
 
     @Override
     protected int getLayoutId() {
@@ -123,7 +136,9 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        registerReceiver();
+        if (!EventBus.getDefault().isRegistered(this)){
+            EventBus.getDefault().register(this);
+        }
 
     }
 
@@ -137,6 +152,8 @@ public class MainActivity extends BaseActivity {
         mMediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
         fragmentManager = getSupportFragmentManager();
         initOrderFragment();
+        updatePresentation(Contant.BANNER);
+        verify=true;
         USBPrinter.getInstance().initPrinter(this);
     }
 
@@ -150,7 +167,6 @@ public class MainActivity extends BaseActivity {
                 MediaRouter.ROUTE_TYPE_LIVE_VIDEO);
         Display presentationDisplay = route != null ? route.getPresentationDisplay() : null;
         if (mPresentation != null) {
-            LogUtils.d("disssss");
             mPresentation.dismiss();
             mPresentation = null;
         }
@@ -158,12 +174,21 @@ public class MainActivity extends BaseActivity {
             switch (screenType) {
                 case Contant.BANNER:
                     mPresentation = new BannerScreen(this, presentationDisplay);
+                    curType =Contant.BANNER;
                     break;
                 case Contant.CODE_RESULT:
                     mPresentation = new CodeResultScreen(this, presentationDisplay);
+                    curType =Contant.CODE_RESULT;
+                    reSetScanBtn();
                     break;
                 case Contant.VERIFY:
                     mPresentation = new VerifyScreen(this, presentationDisplay);
+                    curType =Contant.VERIFY;
+                    break;
+                case Contant.SCAN:
+                    mPresentation = new ScanScreen(this, presentationDisplay);
+                    curType =Contant.SCAN;
+                    reSetScanBtn();
                     break;
             }
             try {
@@ -173,7 +198,6 @@ public class MainActivity extends BaseActivity {
                 mPresentation = null;
             }
         }
-        //updateContents();
     }
 
     public void dissmissScreen() {
@@ -181,6 +205,13 @@ public class MainActivity extends BaseActivity {
             mPresentation.dismiss();
             mPresentation = null;
         }
+    }
+
+    public boolean isShowBanner() {
+        if (mPresentation != null) {
+            return mPresentation.isShowing()&&curType==Contant.BANNER;
+        }
+        return false;
     }
 
     private void initOrderFragment() {
@@ -205,6 +236,9 @@ public class MainActivity extends BaseActivity {
         }
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.fl_content, publishFragment).commitAllowingStateLoss();
+        if (!isShowBanner()) {
+            updatePresentation(Contant.BANNER);
+        }
         reSetButton(publishFragment);
     }
 
@@ -214,6 +248,9 @@ public class MainActivity extends BaseActivity {
         }
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.fl_content, sellFragment).commitAllowingStateLoss();
+        if (!isShowBanner()) {
+            updatePresentation(Contant.BANNER);
+        }
         reSetButton(sellFragment);
     }
 
@@ -223,6 +260,9 @@ public class MainActivity extends BaseActivity {
         }
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.fl_content, dataFragment).commitAllowingStateLoss();
+        if (!isShowBanner()) {
+            updatePresentation(Contant.BANNER);
+        }
         reSetButton(dataFragment);
     }
 
@@ -232,6 +272,9 @@ public class MainActivity extends BaseActivity {
         }
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.fl_content, settingFragment).commitAllowingStateLoss();
+        if (!isShowBanner()) {
+            updatePresentation(Contant.BANNER);
+        }
         reSetButton(settingFragment);
     }
 
@@ -240,6 +283,22 @@ public class MainActivity extends BaseActivity {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.fl_content, codeResultFragment).commitAllowingStateLoss();
         reSetButton(codeResultFragment);
+    }
+
+    private void initVerifyFragment() {
+        if (verifyResultFragment==null){
+            verifyResultFragment = new VerifyResultFragment();
+        }
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.fl_content, verifyResultFragment).commitAllowingStateLoss();
+    }
+
+    private void initPassWordFragment() {
+        if (passWordFragment==null){
+            passWordFragment = new PassWordFragment();
+        }
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.fl_content, passWordFragment).commitAllowingStateLoss();
     }
 
     private void initScanErrorFragment() {
@@ -254,12 +313,7 @@ public class MainActivity extends BaseActivity {
     private void reSetButton(Fragment fragment) {
         cFragment = fragment;
         clearBg();
-        if (scannerFragment == fragment) {
-            clScan.setBackgroundResource(R.drawable.shape_scan_false);
-            tvScan.setText(getString(R.string.main_0));
-        } else {
-            tvScan.setText(getString(R.string.main_1));
-        }
+        reSetScanBtn();
         if (publishFragment == fragment) {
             clPublish.setBackgroundResource(R.drawable.shape_main_button_false);
             tvPublish.setTextColor(ContextCompat.getColor(this, R.color.color_text_2));
@@ -280,6 +334,16 @@ public class MainActivity extends BaseActivity {
             tvSetting.setTextColor(ContextCompat.getColor(this, R.color.color_text_2));
             ivSettingBg.setBackgroundResource(R.drawable.shape_circle_a_86);
             ivSettingIcon.setImageResource(R.drawable.main_7_s);
+        }
+    }
+
+    private void reSetScanBtn() {
+        if (curType == Contant.SCAN) {
+            clScan.setBackgroundResource(R.drawable.shape_scan_false);
+            tvScan.setText(getString(R.string.main_0));
+        } else {
+            clScan.setBackgroundResource(R.drawable.shape_scan);
+            tvScan.setText(getString(R.string.main_1));
         }
     }
 
@@ -315,12 +379,12 @@ public class MainActivity extends BaseActivity {
     void onClick(View view) {
         switch (view.getId()) {
             case R.id.cl_scan:
-                if (cFragment == scannerFragment) {
+                if (curType == Contant.SCAN) {
                     updatePresentation(Contant.BANNER);
-                    initOrderFragment();
+                    reSetScanBtn();
                 } else {
-                    initScannerFragment();
-                    dissmissScreen();
+                    updatePresentation(Contant.SCAN);
+                    initOrderFragment();
                 }
                 break;
             case R.id.cl_publish:
@@ -338,31 +402,9 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void registerReceiver() {
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(ScannerFragment.MESSAGE_ACTION);
-        intentFilter.addAction(Contant.PRINT_ACTION);
-        registerReceiver(mReceiver, intentFilter);
-    }
-
-    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            // 消息广播
-            if (action.equals(ScannerFragment.MESSAGE_ACTION)) {
-                String code = intent.getStringExtra(ScannerFragment.MESSAGE_BARCODE);
-                verify(code);
-            } else if (action.equals(Contant.PRINT_ACTION)) {
-                Bundle bundle = intent.getBundleExtra(Contant.PRINT_MAP);
-                SerializableMap map = (SerializableMap) bundle.get(Contant.PRINT_MAP);
-                Map<String, String> printMap = map != null ? map.getMap() : null;
-                new PrintThread(printMap).start();
-            }
-        }
-    };
 
     private void verify(String code) {
+        verify =false;
         String[] split = code.split(",");
         showLoading();
         HashMap<String, String> hashMap = new HashMap<>();
@@ -379,6 +421,7 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onSuccess(ResponseBody<VerifyRes> response) {
                         hideLoading();
+                        verify=true;
                         VerifyRes data = response.getData();
                         if (data != null) {
                             EventBus.getDefault().postSticky(data);
@@ -389,19 +432,21 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onFail(ResponseBody<VerifyRes> response) {
                         hideLoading();
+                        verify=true;
                         int errorCode = response.getCode();
                         if (errorCode == 1) {
                             ToastUtils.showShort("查询失败");
                         } else {
-                            EventBus.getDefault().postSticky(new EventErrorCode(errorCode));
-                            initScanErrorFragment();
                             updatePresentation(Contant.BANNER);
+                            initScanErrorFragment();
+                            EventBus.getDefault().postSticky(new EventErrorCode(errorCode));
                         }
                     }
 
                     @Override
                     public void onError(String s) {
                         hideLoading();
+                        verify=true;
                     }
                 });
     }
@@ -444,10 +489,59 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void receiveCode(EventCode data) {
+        verify(data.getCode());
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void receivePrint(EventPrint data) {
+        new PrintThread(data.getPrintMap()).start();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void receiveScreen(EventScreen data) {
+        updatePresentation(data.getType());
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void receiveFragment(EventFragment data) {
+        switch (data.getType()){
+            case Contant.F_ORDER:
+                initOrderFragment();
+                break;
+            case Contant.F_RESULT:
+                initCodeResultFragment();
+                break;
+            case Contant.F_VERIFY:
+                initVerifyFragment();
+                break;
+            case Contant.F_DATA:
+                initDataFragment();
+                break;
+            case Contant.F_SELL:
+                initSellFragment();
+                break;
+            case Contant.F_SETTING:
+                initSettingFragment();
+                break;
+            case Contant.F_PUBLISH:
+                initPublishFragment();
+                break;
+            case Contant.F_PASSWORD:
+                initPassWordFragment();
+                break;
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        LogUtils.d("onDestroy");
         USBPrinter.getInstance().closeDevice();
+        if (EventBus.getDefault().isRegistered(this)){
+            EventBus.getDefault().unregister(this);
+        }
         dissmissScreen();
     }
 

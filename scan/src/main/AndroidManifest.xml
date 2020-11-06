@@ -1,7 +1,0 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.mashangyou.scan" >
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <application>
-        <activity android:name=".ScannerFragment" />
-    </application>
-</manifest>

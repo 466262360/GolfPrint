@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.blankj.utilcode.util.LogUtils;
 import com.mashangyou.golfprint.R;
 import com.mashangyou.golfprint.bean.res.PublishInfoRes;
 import com.mashangyou.golfprint.bean.res.PublishRes;
@@ -48,15 +49,21 @@ public class PublishDialog extends Dialog {
             }
         });
         tvDate.setText(format.format(new Date(infos.getOpentime())));
-        //tvPeople.setText(infos.getPeople());
+        int i = infos.getAllcanuserperson() - infos.getUserdPersoncont();
+        tvPeople.setText(i+"人");
         switch (infos.getSalestatus()) {
             case "0":
                 tvStates.setText(getContext().getString(R.string.publish_17));
                 tvStates.setTextColor(ContextCompat.getColor(getContext(),R.color.color_text_6));
                 break;
             case "1":
-                tvStates.setText(getContext().getString(R.string.publish_15));
-                tvStates.setTextColor(ContextCompat.getColor(getContext(),R.color.color_stroke_1));
+                if (i==0){
+                    tvStates.setText(getContext().getString(R.string.publish_18));
+                    tvStates.setTextColor(ContextCompat.getColor(getContext(),R.color.color_text_6));
+                }else{
+                    tvStates.setText(getContext().getString(R.string.publish_15));
+                    tvStates.setTextColor(ContextCompat.getColor(getContext(),R.color.color_stroke_1));
+                }
                 break;
             case "2":
                 tvStates.setText(getContext().getString(R.string.publish_16));

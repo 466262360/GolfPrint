@@ -7,9 +7,12 @@ import com.mashangyou.golfprint.adapter.OrderAdapter;
 import com.mashangyou.golfprint.api.Contant;
 import com.mashangyou.golfprint.api.DefaultObserver;
 import com.mashangyou.golfprint.api.RetrofitManager;
+import com.mashangyou.golfprint.bean.event.EventScreen;
 import com.mashangyou.golfprint.bean.res.OrderListRes;
 import com.mashangyou.golfprint.bean.res.ResponseBody;
 import com.mashangyou.golfprint.ui.activity.MainActivity;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +50,7 @@ public class OrderFragment extends BaseFragment{
     protected void initData() {
         if (getActivity()!=null){
             ((MainActivity)getActivity()).setTopTitle(getString(R.string.title_1));
-            ((MainActivity) getActivity()).updatePresentation(Contant.BANNER);
+            //EventBus.getDefault().post(new EventScreen(Contant.BANNER));
         }
 
     }

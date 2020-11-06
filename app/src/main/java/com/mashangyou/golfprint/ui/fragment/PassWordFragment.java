@@ -10,9 +10,12 @@ import com.mashangyou.golfprint.R;
 import com.mashangyou.golfprint.api.Contant;
 import com.mashangyou.golfprint.api.DefaultObserver;
 import com.mashangyou.golfprint.api.RetrofitManager;
+import com.mashangyou.golfprint.bean.event.EventFragment;
 import com.mashangyou.golfprint.bean.res.PassWordRes;
 import com.mashangyou.golfprint.bean.res.ResponseBody;
 import com.mashangyou.golfprint.ui.activity.MainActivity;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.HashMap;
 
@@ -59,11 +62,7 @@ public class PassWordFragment extends BaseFragment{
     void onClick(View view){
         switch (view.getId()){
             case R.id.btn_cancel:
-                if (getActivity()!=null){
-                    FragmentManager manager = getActivity().getSupportFragmentManager();
-                    FragmentTransaction transaction = manager.beginTransaction();
-                    transaction.replace(R.id.fl_content,new SettingFragment()).commit();
-                }
+                EventBus.getDefault().post(new EventFragment(Contant.F_SETTING));
                 break;
             case R.id.btn_commit:
                 check();
@@ -108,11 +107,7 @@ public class PassWordFragment extends BaseFragment{
                     @Override
                     public void onSuccess(ResponseBody<PassWordRes> response) {
                         ToastUtils.showShort(getString(R.string.pass_word_8));
-                        if (getActivity()!=null){
-                            FragmentManager manager = getActivity().getSupportFragmentManager();
-                            FragmentTransaction transaction = manager.beginTransaction();
-                            transaction.replace(R.id.fl_content,new SettingFragment()).commit();
-                        }
+                        EventBus.getDefault().post(new EventFragment(Contant.F_SETTING));
                     }
 
                     @Override

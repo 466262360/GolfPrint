@@ -5,7 +5,9 @@ import android.widget.TextView;
 
 import com.blankj.utilcode.util.LogUtils;
 import com.mashangyou.golfprint.R;
+import com.mashangyou.golfprint.api.Contant;
 import com.mashangyou.golfprint.bean.event.EventErrorCode;
+import com.mashangyou.golfprint.bean.event.EventFragment;
 import com.mashangyou.golfprint.interfac.OnButtonClick;
 import com.mashangyou.golfprint.ui.activity.MainActivity;
 
@@ -61,12 +63,7 @@ public class ScanErrorFragment extends BaseFragment {
 
     @OnClick(R.id.btn_back)
     void onClick(){
-      if (getActivity()!=null){
-          FragmentManager manager = getActivity().getSupportFragmentManager();
-          FragmentTransaction transaction = manager.beginTransaction();
-          transaction.replace(R.id.fl_content,new OrderFragment()).commit();
-
-      }
+        EventBus.getDefault().post(new EventFragment(Contant.F_ORDER));
     }
 
     @Override
