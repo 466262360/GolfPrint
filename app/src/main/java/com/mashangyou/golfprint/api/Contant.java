@@ -24,6 +24,7 @@ public class Contant {
     public static final int F_SETTING =5;
     public static final int F_VERIFY =6;
     public static final int F_PASSWORD =7;
+    public static final int F_SCANSHOW =8;
 
 
     public static final String PRINT_ACTION ="print_action";
@@ -38,4 +39,14 @@ public class Contant {
     public static final String PRINT_GOLFNAME ="print_golf_name" ;
     public static final String PRINT_FREQUENCY ="print_frequency" ;
     public static final String PRINT_CURRENT_DATE ="print_current_date" ;
+    public static final String IS_PRINT = "is_print";
+    public static final String PRINT_ERROR ="print_error" ;
+    public static final String PRINT_INTERESTFACY ="print_interestfacy" ;
+    public static final String PRINT_INTERESTGROUP ="print_interestGroup" ;
+    public static final String PRINT_MEMBER ="print_member" ;
+    public static final String PRINT_GROUP ="print_group" ;
+    public static final String PRINT_GUEST ="print_guest" ;
+    public static final String PRINT_MEMBERPRICE ="print_memberPrice" ;
+    public static final String PRINT_GROUPPRICE ="print_groupPrice" ;
+    public static final String PRINT_GUESTPRICE ="print_guestPrice" ;
 }

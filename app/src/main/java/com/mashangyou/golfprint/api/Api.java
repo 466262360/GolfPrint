@@ -1,13 +1,12 @@
 package com.mashangyou.golfprint.api;
 
 
-
+import com.mashangyou.golfprint.bean.res.AppVersion;
 import com.mashangyou.golfprint.bean.res.CountWriteRes;
 import com.mashangyou.golfprint.bean.res.LoginRes;
 import com.mashangyou.golfprint.bean.res.OrderListRes;
 import com.mashangyou.golfprint.bean.res.PassWordRes;
 import com.mashangyou.golfprint.bean.res.PublishListRes;
-import com.mashangyou.golfprint.bean.res.PublishRes;
 import com.mashangyou.golfprint.bean.res.ResponseBody;
 import com.mashangyou.golfprint.bean.res.SelectWriteRes;
 import com.mashangyou.golfprint.bean.res.VerifyRes;
@@ -20,7 +19,6 @@ import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
-import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface Api {
@@ -35,6 +33,10 @@ public interface Api {
     @FormUrlEncoded
     @POST("mobile/multiple/verification")
     Observable<ResponseBody<VerifyRes>> verify(@FieldMap Map<String, String> fields);
+
+    @FormUrlEncoded
+    @POST("mobile/bigcode/verification")
+    Observable<ResponseBody<VerifyRes>> verifyTrus(@FieldMap Map<String, String> fields);
 
     @FormUrlEncoded
     @POST("mobile/use")
@@ -58,4 +60,7 @@ public interface Api {
     @FormUrlEncoded
     @POST("mobile/querySeasion")
     Observable<ResponseBody<PublishListRes>> query(@FieldMap Map<String, String> fields);
+
+    @GET("mobile/version/1")
+    Observable<ResponseBody<AppVersion>> update();
 }

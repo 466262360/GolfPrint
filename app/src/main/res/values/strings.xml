@@ -12,12 +12,14 @@
     <string name="title_5">设置</string>
     <string name="title_6">会籍信息</string>
     <string name="title_7">修改密码</string>
+    <string name="title_8">正在扫码中...</string>
     <string name="main_0">取消</string>
     <string name="main_1">扫一扫</string>
     <string name="main_2">场次查询</string>
     <string name="main_3">定制促销</string>
     <string name="main_4">数据统计</string>
     <string name="main_5">设&#8195;&#8195;置</string>
+    <string name="main_6">订单信息</string>
     <string name="order_1">订单号</string>
     <string name="order_2">日期</string>
     <string name="order_3">人数</string>
@@ -61,6 +63,10 @@
     <string name="setting_2">联系客服</string>
     <string name="setting_3">400–060–1233</string>
     <string name="setting_4">退出登录</string>
+    <string name="setting_5">检查更新</string>
+    <string name="setting_6">已经是最新版本</string>
+    <string name="setting_7">正在获取最新版本信息</string>
+    <string name="setting_8">正在下载最新版本</string>
     <string name="pass_word_1">原&#8194;密&#8194;码</string>
     <string name="pass_word_2">新&#8194;密&#8194;码</string>
     <string name="pass_word_3">再次输入</string>
@@ -89,5 +95,11 @@
     <string name="publish_16">停 售</string>
     <string name="publish_17">未发售</string>
     <string name="publish_18">售 罄</string>
-
+    <string name="dialog_update_app1">发现新版本</string>
+    <string name="dialog_update_app2">立即更新</string>
+    <string name="dialog_update_app3">版本更新提示</string>
+    <string name="dialog_update_app4">当前版本过低，需要升级到最新版本</string>
+    <string name="dialog_update_progress">正在下载</string>
+    <string name="dialog_update_progress2">安装包已下载完成</string>
+    <string name="dialog_update_progress3">立即安装</string>
 </resources>

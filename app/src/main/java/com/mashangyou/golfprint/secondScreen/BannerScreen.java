@@ -62,9 +62,9 @@ public class BannerScreen extends Presentation {
 
     private void initBanner() {
         ArrayList<Integer> strings = new ArrayList<>();
-        strings.add(R.drawable.b_1);
-        strings.add(R.drawable.b_2);
-        strings.add(R.drawable.b_3);
+        strings.add(R.drawable.bs_1);
+        strings.add(R.drawable.bs_2);
+        strings.add(R.drawable.bs_3);
         BannerAdapter bannerAdapter = new BannerAdapter();
         bannerAdapter.setData(strings);
         if (bannerAdapter.getDataSize() == 0) {

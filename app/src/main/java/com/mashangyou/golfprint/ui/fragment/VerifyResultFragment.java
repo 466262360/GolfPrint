@@ -105,12 +105,10 @@ public class VerifyResultFragment extends BaseFragment{
            case R.id.btn_cancel:
            case R.id.btn_home:
                EventBus.getDefault().post(new EventFragment(Contant.F_ORDER));
-               EventBus.getDefault().post(new EventScreen(Contant.BANNER));
                break;
            case R.id.btn_contiune:
            case R.id.btn_contiune_fail:
-               EventBus.getDefault().post(new EventFragment(Contant.F_ORDER));
-               EventBus.getDefault().post(new EventScreen(Contant.SCAN));
+               EventBus.getDefault().post(new EventFragment(Contant.F_SCANSHOW));
                break;
        }
     }

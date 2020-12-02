@@ -49,28 +49,141 @@ public class PrintContract {
         addLineSeparator(builder);
         builder.append("地点：     " + hashMap.get(Contant.PRINT_GOLFNAME));
         addLineSeparator(builder);
-        if (!TextUtils.isEmpty(hashMap.get(Contant.PRINT_FREQUENCY))) {
-            String[] split = hashMap.get(Contant.PRINT_FREQUENCY).split("同组");
-            builder.append("年度剩余： " + "个人" + split[0] + " 同组" + split[1]);
-            addLineSeparator(builder);
-        }
-        builder.append("订单号：   " + hashMap.get(Contant.PRINT_ORDER));
+        builder.append("单号：     " + hashMap.get(Contant.PRINT_ORDER));
         addLineSeparator(builder);
+        builder.append("核销信息");
+        addLineSeparator(builder);
+        //本次扣减
+        reduce(builder,hashMap);
+        //年度剩余
+        frequency(builder,hashMap);
+        //参考金额
+        money(builder,hashMap);
         builder.append("核销时间： " + hashMap.get(Contant.PRINT_CURRENT_DATE));
         addLineSeparator(builder);
         addLineSeparator(builder);
-        builder.append("签名");
+        builder.append("会员签名");
         addLineSeparator(builder);
         addLineSeparator(builder);
-        builder.append("__________________________________________");
+        builder.append("............................");
+        addLineSeparator(builder);
+        addLineSeparator(builder);
+        addLineSeparator(builder);
+        addLineSeparator(builder);
+        addLineSeparator(builder);
         addLineSeparator(builder);
         //设置某两列文字间空格数, x需要计算出来
         //addIdenticalStrToStringBuilder(builder, x, " ");
 
         //切纸
-        builder.append(PrintFormatUtils.getCutPaperCmd());
+        //builder.append(PrintFormatUtils.getCutPaperCmd());
 
         return builder.toString();
+    }
+
+    private static void reduce(StringBuilder builder, Map<String, String> hashMap) {
+        int member=0;
+        int group=0;
+        int guest=0;
+        if (!TextUtils.isEmpty(hashMap.get(Contant.PRINT_MEMBER))){
+             member = Integer.parseInt(hashMap.get(Contant.PRINT_MEMBER));
+        }
+        if (!TextUtils.isEmpty(hashMap.get(Contant.PRINT_GROUP))){
+            group = Integer.parseInt(hashMap.get(Contant.PRINT_GROUP));
+        }
+        if (!TextUtils.isEmpty(hashMap.get(Contant.PRINT_GUEST))){
+            guest= Integer.parseInt(hashMap.get(Contant.PRINT_GUEST));
+        }
+        if (member+group+guest>0){
+            builder.append("本次扣减：");
+
+            if (member>0&&group==0&&guest==0){
+                builder.append("会员"+member+"场");
+            }else if(member==0&&group>0&&guest==0){
+                builder.append("会待"+group+"场");
+            }else if(member==0&&group==0&&guest>0){
+                builder.append("嘉宾"+guest+"场");
+            }else if(member>0&&group>0&&guest==0){
+                builder.append("会员"+member+"场   会待"+group+"场");
+            }else if(member>0&&group==0&&guest>0){
+                builder.append("会员"+member+"场   嘉宾"+guest+"场");
+            }else if(member==0&&group>0&&guest>0){
+                builder.append("会待"+group+"场   嘉宾"+guest+"场");
+            }else if(member>0&&group>0&&guest>0){
+                builder.append("会员"+member+"场   会待"+group+"场");
+                addLineSeparator(builder);
+                builder.append("          嘉宾"+guest+"场");
+            }
+            addLineSeparator(builder);
+        }
+    }
+    private static void frequency(StringBuilder builder, Map<String, String> hashMap) {
+        int interestfacy=0;
+        int interestGroup=0;
+        if (!TextUtils.isEmpty(hashMap.get(Contant.PRINT_INTERESTFACY))){
+            interestfacy = Integer.parseInt(hashMap.get(Contant.PRINT_INTERESTFACY));
+        }
+        if (!TextUtils.isEmpty(hashMap.get(Contant.PRINT_INTERESTGROUP))){
+            interestGroup = Integer.parseInt(hashMap.get(Contant.PRINT_INTERESTGROUP));
+        }
+        if (interestfacy+interestGroup>0){
+            builder.append("年度剩余：");
+
+            if (interestfacy>0&&interestGroup==0){
+                builder.append("会员"+interestfacy+"场");
+            }else if(interestfacy==0&&interestGroup>0){
+                builder.append("会待"+interestGroup+"场");
+            }else if(interestfacy>0&&interestGroup>0){
+                builder.append("会员"+interestfacy+"场   会待"+interestGroup+"场");
+            }
+
+            addLineSeparator(builder);
+        }
+
+    }
+    private static void money(StringBuilder builder, Map<String, String> hashMap) {
+        double memberPrice=0;
+        double groupPrice=0;
+        double guestPrice=0;
+        if (!TextUtils.isEmpty(hashMap.get(Contant.PRINT_MEMBERPRICE))){
+            memberPrice = Double.parseDouble(hashMap.get(Contant.PRINT_MEMBERPRICE));
+        }
+        if (!TextUtils.isEmpty(hashMap.get(Contant.PRINT_GROUPPRICE))){
+            groupPrice = Double.parseDouble(hashMap.get(Contant.PRINT_GROUPPRICE));
+        }
+        if (!TextUtils.isEmpty(hashMap.get(Contant.PRINT_GUESTPRICE))){
+            guestPrice= Double.parseDouble(hashMap.get(Contant.PRINT_GUESTPRICE));
+        }
+        if (memberPrice+groupPrice+guestPrice>0){
+            builder.append("参考金额：");
+
+            if (memberPrice>0&&groupPrice==0&&guestPrice==0){
+                builder.append("会员"+memberPrice+"元");
+            }else if(memberPrice==0&&groupPrice>0&&guestPrice==0){
+                builder.append("会待"+groupPrice+"元");
+            }else if(memberPrice==0&&groupPrice==0&&guestPrice>0){
+                builder.append("嘉宾"+guestPrice+"元");
+            }else if(memberPrice>0&&groupPrice>0&&guestPrice==0){
+                builder.append("会员"+memberPrice+"元");
+                addLineSeparator(builder);
+                builder.append("          会待"+groupPrice+"元");
+            }else if(memberPrice>0&&groupPrice==0&&guestPrice>0){
+                builder.append("会员"+memberPrice+"元");
+                addLineSeparator(builder);
+                builder.append("          嘉宾"+guestPrice+"元");
+            }else if(memberPrice==0&&groupPrice>0&&guestPrice>0){
+                builder.append("会待"+groupPrice+"元");
+                addLineSeparator(builder);
+                builder.append("          嘉宾"+guestPrice+"元");
+            }else if(memberPrice>0&&groupPrice>0&&guestPrice>0){
+                builder.append("会员"+memberPrice+"元");
+                addLineSeparator(builder);
+                builder.append("          会待"+groupPrice+"元");
+                addLineSeparator(builder);
+                builder.append("          嘉宾"+guestPrice+"元");
+            }
+            addLineSeparator(builder);
+        }
     }
 
     /**

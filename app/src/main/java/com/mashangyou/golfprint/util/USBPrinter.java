@@ -12,6 +12,7 @@ import android.os.Handler;
 import android.os.Message;
 
 import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.mashangyou.golfprint.api.Contant;
 import com.mashangyou.golfprint.usbsdk.CallbackInfo;
@@ -83,7 +84,7 @@ public class USBPrinter {
         init(context);
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+
     private void init(Context context) {
         mContext = context;
         openDevice();
@@ -115,17 +116,28 @@ public class USBPrinter {
                         message.arg1 = 1;
                         message.obj = "切刀错误";
                         handler.sendMessage(message);
+//                        ToastUtils.showShort("切刀错误");
+//                        SPUtils.getInstance().put(Contant.IS_PRINT,false);
+//                        SPUtils.getInstance().put(Contant.PRINT_ERROR,"切刀错误");
                     } else if (split[2].equals("40")) {
                         message.arg1 = 1;
                         message.obj = "打印机过热";
                         handler.sendMessage(message);
+//                        ToastUtils.showShort("打印机过热");
+//                        SPUtils.getInstance().put(Contant.IS_PRINT,false);
+//                        SPUtils.getInstance().put(Contant.PRINT_ERROR,"打印机过热");
                     } else if (split[3].equals("c")) {
                         message.arg1 = 1;
                         message.obj = "打印机缺纸";
                         handler.sendMessage(message);
+//                        ToastUtils.showShort("打印机缺纸");
+//                        SPUtils.getInstance().put(Contant.IS_PRINT,false);
+//                        SPUtils.getInstance().put(Contant.PRINT_ERROR,"打印机缺纸");
                     } else {
                         message.arg1 = 0;
                         handler.sendMessage(message);
+//                        SPUtils.getInstance().put(Contant.IS_PRINT,true);
+//                        SPUtils.getInstance().put(Contant.PRINT_ERROR,"");
                     }
 
                 } catch (Exception e) {
@@ -190,8 +202,16 @@ public class USBPrinter {
         hashMap.put(Contant.PRINT_CAVES, "4");
         hashMap.put(Contant.PRINT_ORDER, "3343435");
         hashMap.put(Contant.PRINT_GOLFNAME, "吃饭饭方法");
-        hashMap.put(Contant.PRINT_FREQUENCY, "14/18(次)  同组6/6(次)");
         hashMap.put(Contant.PRINT_CURRENT_DATE, "2020-10-30 13:12");
+        hashMap.put(Contant.PRINT_FREQUENCY, "1");
+        hashMap.put(Contant.PRINT_INTERESTFACY, "1");
+        hashMap.put(Contant.PRINT_INTERESTGROUP, "1");
+        hashMap.put(Contant.PRINT_MEMBER, "1");
+        hashMap.put(Contant.PRINT_GROUP, "1");
+        hashMap.put(Contant.PRINT_GUEST, "1");
+        hashMap.put(Contant.PRINT_MEMBERPRICE, "20");
+        hashMap.put(Contant.PRINT_GROUPPRICE, "21");
+        hashMap.put(Contant.PRINT_GUESTPRICE, "10.0");
         if (m_Device.isDeviceOpen()) {
             printText(PrintContract.createXxTxt(hashMap));
         }
@@ -321,7 +341,6 @@ public class USBPrinter {
                     printStatesCallback.success();
             } else if (msg.arg1 == 1) {
                 String error = (String) msg.obj;
-                ToastUtils.showLong(error);
                 if (printStatesCallback != null)
                     printStatesCallback.error(error);
             }

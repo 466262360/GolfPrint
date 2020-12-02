@@ -118,7 +118,6 @@ public class GGG extends FFF {
             CCCC.d(TAG, "PortName is empty. Trying to find Gp device...");
 
             this.m_USBDevice = getUsbDevice(this.m_usbManager);
-            LogUtils.d(m_USBDevice.getVendorId()+"-"+m_USBDevice.getProductId());
             if (this.m_USBDevice != null) {
                 // get permisstion
                 if (!getUsbPermission()) {

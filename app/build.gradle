@@ -8,7 +8,7 @@ android {
         minSdkVersion 22
         targetSdkVersion 29
         versionCode 2
-        versionName "1.0"
+        versionName "1.0.0"
         flavorDimensions("golf")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -38,22 +38,22 @@ android {
 
 
     productFlavors {
-        golfDev {
+        whiteDev {
             buildConfigField "String", "BASE_URL", '"http://demo.smartou.com/golf/"'
             applicationIdSuffix ".dev"
             manifestPlaceholders = [
                     appName: "@string/app_name_dev"
             ]
         }
-        golfTest {
+        whiteTest {
             buildConfigField "String", "BASE_URL", '"http://192.168.0.27:90/golf/"'
             applicationIdSuffix ".test"
             manifestPlaceholders = [
                     appName: "@string/app_name_dev"
             ]
         }
-        golfRelease {
-            buildConfigField "String", "BASE_URL", '"http://demo.smartou.com/golf/"'
+        whiteRelease {
+            buildConfigField "String", "BASE_URL", '"http://www.smartou.com/golf/"'
             manifestPlaceholders = [
                     appName: "@string/app_name"
             ]
@@ -117,4 +117,5 @@ dependencies {
     implementation 'com.github.jiusetian:EasySocket:1.7.0'
     implementation 'org.greenrobot:eventbus:3.2.0'
     implementation 'com.google.zxing:core:3.3.0'
+    implementation 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
 }

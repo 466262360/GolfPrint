@@ -42,7 +42,7 @@ public class BannerAdapter extends PagerAdapter {
         int realPosition = position % mList.size();
         ImageView imageView = new ImageView(container.getContext());
         imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        Glide.with(container.getContext()).load(mList.get(realPosition)).transform(new CenterCrop(),new RoundedCorners(ConvertUtils.dp2px(12))).into(imageView);
+        Glide.with(container.getContext()).load(mList.get(realPosition)).into(imageView);
         container.addView(imageView);
         return imageView;
     }

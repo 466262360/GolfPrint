@@ -1,14 +1,15 @@
 package com.mashangyou.golfprint.ui.activity;
 
 import android.app.Presentation;
-import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.media.MediaRouter;
-import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.View;
@@ -16,7 +17,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.mashangyou.golfprint.R;
@@ -28,25 +29,30 @@ import com.mashangyou.golfprint.bean.event.EventErrorCode;
 import com.mashangyou.golfprint.bean.event.EventFragment;
 import com.mashangyou.golfprint.bean.event.EventPrint;
 import com.mashangyou.golfprint.bean.event.EventScreen;
+import com.mashangyou.golfprint.bean.res.AppVersion;
 import com.mashangyou.golfprint.bean.res.ResponseBody;
 import com.mashangyou.golfprint.bean.res.VerifyRes;
+import com.mashangyou.golfprint.interfac.UpdatePb;
 import com.mashangyou.golfprint.scan.ScannerFragment;
 import com.mashangyou.golfprint.secondScreen.BannerScreen;
 import com.mashangyou.golfprint.secondScreen.CodeResultScreen;
 import com.mashangyou.golfprint.secondScreen.ScanScreen;
 import com.mashangyou.golfprint.secondScreen.VerifyScreen;
+import com.mashangyou.golfprint.service.DownLoadService;
 import com.mashangyou.golfprint.ui.fragment.CodeResultFragment;
 import com.mashangyou.golfprint.ui.fragment.DataFragment;
 import com.mashangyou.golfprint.ui.fragment.OrderFragment;
 import com.mashangyou.golfprint.ui.fragment.PassWordFragment;
 import com.mashangyou.golfprint.ui.fragment.PublishFragment;
 import com.mashangyou.golfprint.ui.fragment.ScanErrorFragment;
+import com.mashangyou.golfprint.ui.fragment.ScanShowFragment;
 import com.mashangyou.golfprint.ui.fragment.SellFragment;
 import com.mashangyou.golfprint.ui.fragment.SettingFragment;
 import com.mashangyou.golfprint.ui.fragment.VerifyResultFragment;
-import com.mashangyou.golfprint.util.SerializableMap;
 import com.mashangyou.golfprint.util.USBPrinter;
-
+import com.mashangyou.golfprint.widget.InstallApkDialog;
+import com.mashangyou.golfprint.widget.UpdateAppDialog;
+import com.mashangyou.golfprint.widget.UpdateProgressDialog;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -71,14 +77,17 @@ public class MainActivity extends BaseActivity {
     ConstraintLayout clScan;
     @BindView(R.id.cl_publish)
     ConstraintLayout clPublish;
-    @BindView(R.id.cl_sell)
-    ConstraintLayout clSell;
+    @BindView(R.id.cl_order)
+    ConstraintLayout clOrder;
     @BindView(R.id.cl_data)
     ConstraintLayout clData;
     @BindView(R.id.cl_setting)
     ConstraintLayout clSetting;
+    @BindView(R.id.cl_sell)
+    ConstraintLayout clSell;
+
     @BindView(R.id.tv_1)
-    TextView tvScan;
+    TextView tvOrder;
     @BindView(R.id.tv_2)
     TextView tvPublish;
     @BindView(R.id.tv_3)
@@ -87,6 +96,10 @@ public class MainActivity extends BaseActivity {
     TextView tvData;
     @BindView(R.id.tv_5)
     TextView tvSetting;
+    @BindView(R.id.iv_scan)
+    ImageView ivScan;
+    @BindView(R.id.iv_bg_1)
+    ImageView ivOrderBg;
     @BindView(R.id.iv_bg_2)
     ImageView ivPublishBg;
     @BindView(R.id.iv_bg_3)
@@ -95,6 +108,8 @@ public class MainActivity extends BaseActivity {
     ImageView ivDataBg;
     @BindView(R.id.iv_bg_5)
     ImageView ivSettingBg;
+    @BindView(R.id.iv_icon_1)
+    ImageView ivOrderIcon;
     @BindView(R.id.iv_icon_2)
     ImageView ivPublishIcon;
     @BindView(R.id.iv_icon_3)
@@ -110,7 +125,6 @@ public class MainActivity extends BaseActivity {
     private OrderFragment orderFragment;
     private ScannerFragment scannerFragment;
     private PublishFragment publishFragment;
-    private SellFragment sellFragment;
     private DataFragment dataFragment;
     private SettingFragment settingFragment;
     private CodeResultFragment codeResultFragment;
@@ -122,7 +136,9 @@ public class MainActivity extends BaseActivity {
     private boolean verify;
     private VerifyResultFragment verifyResultFragment;
     private PassWordFragment passWordFragment;
-
+    private SellFragment sellFragment;
+    private ScanShowFragment scanShowFragment;
+    Presentation lastDisplayPresentation;//用于记录上次展示的副屏的界面
     @Override
     protected int getLayoutId() {
         return R.layout.activity_main;
@@ -136,7 +152,7 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (!EventBus.getDefault().isRegistered(this)){
+        if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
 
@@ -152,10 +168,97 @@ public class MainActivity extends BaseActivity {
         mMediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
         fragmentManager = getSupportFragmentManager();
         initOrderFragment();
-        updatePresentation(Contant.BANNER);
-        verify=true;
+        verify = true;
         USBPrinter.getInstance().initPrinter(this);
+        UpAppVersion();
     }
+
+    private void UpAppVersion() {
+        RetrofitManager.getApi()
+                .update()
+                .compose(this.bindToLifecycle())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new DefaultObserver<ResponseBody<AppVersion>>() {
+                    @Override
+                    public void onSuccess(ResponseBody<AppVersion> response) {
+                        int version = response.getData().getVersion();
+                        if (version > AppUtils.getAppVersionCode()) {
+                            String url = response.getData().getUrl();
+                            if (!TextUtils.isEmpty(url)) {
+                                showNoticeDialog(response.getData());
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFail(ResponseBody<AppVersion> response) {
+                        ToastUtils.showShort(response.getErrMsg());
+                    }
+
+                    @Override
+                    public void onError(String s) {
+                    }
+                });
+    }
+
+    /**
+     * 显示更新对话框
+     *
+     * @param appVersion
+     */
+    private void showNoticeDialog(AppVersion appVersion) {
+        UpdateAppDialog dialog = new UpdateAppDialog(context, appVersion);
+        dialog.show();
+        dialog.setOnDownListener(new UpdateAppDialog.OnDownClickListener() {
+            @Override
+            public void onDownClick() {
+                Intent intent = new Intent(MainActivity.this, DownLoadService.class);
+                intent.putExtra("url", appVersion.getUrl());
+                intent.putExtra("isUpdate", 1);
+                bindService(intent, conn, BIND_AUTO_CREATE);
+
+            }
+        });
+        dialog.setOnCancelListener(new UpdateAppDialog.OnCancelClickListener() {
+            @Override
+            public void onCancelClick() {
+
+            }
+        });
+    }
+
+    ServiceConnection conn = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            DownLoadService.DownloadBinder binder = (DownLoadService.DownloadBinder) service;
+            DownLoadService bindService = binder.getService();
+            bindService.setUpdatePb(new UpdatePb() {
+
+                private UpdateProgressDialog updateProgressDialog;
+
+                @Override
+                public void update(int progress) {
+                    if (updateProgressDialog == null) {
+                        updateProgressDialog = new UpdateProgressDialog(context);
+                        updateProgressDialog.show();
+                    }
+                    updateProgressDialog.setProgress(progress);
+                }
+
+                @Override
+                public void updateSuccess(String apkName) {
+                    InstallApkDialog installApkDialog = new InstallApkDialog(context, apkName);
+                    installApkDialog.show();
+                }
+            });
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
 
     @Override
     protected void onResume() {
@@ -166,50 +269,54 @@ public class MainActivity extends BaseActivity {
         MediaRouter.RouteInfo route = mMediaRouter.getSelectedRoute(
                 MediaRouter.ROUTE_TYPE_LIVE_VIDEO);
         Display presentationDisplay = route != null ? route.getPresentationDisplay() : null;
-        if (mPresentation != null) {
-            mPresentation.dismiss();
-            mPresentation = null;
-        }
         if (presentationDisplay != null) {
             switch (screenType) {
                 case Contant.BANNER:
                     mPresentation = new BannerScreen(this, presentationDisplay);
-                    curType =Contant.BANNER;
+                    curType = Contant.BANNER;
                     break;
                 case Contant.CODE_RESULT:
                     mPresentation = new CodeResultScreen(this, presentationDisplay);
-                    curType =Contant.CODE_RESULT;
+                    curType = Contant.CODE_RESULT;
                     reSetScanBtn();
                     break;
                 case Contant.VERIFY:
                     mPresentation = new VerifyScreen(this, presentationDisplay);
-                    curType =Contant.VERIFY;
+                    curType = Contant.VERIFY;
                     break;
                 case Contant.SCAN:
                     mPresentation = new ScanScreen(this, presentationDisplay);
-                    curType =Contant.SCAN;
+                    curType = Contant.SCAN;
                     reSetScanBtn();
                     break;
             }
             try {
                 mPresentation.show();
             } catch (WindowManager.InvalidDisplayException ex) {
-
                 mPresentation = null;
             }
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (lastDisplayPresentation != null) {
+                        lastDisplayPresentation.dismiss();
+                        lastDisplayPresentation = null;
+                    }
+                    lastDisplayPresentation = mPresentation;
+                }
+            }, 100);
         }
     }
 
     public void dissmissScreen() {
-        if (mPresentation != null) {
-            mPresentation.dismiss();
-            mPresentation = null;
+        if (lastDisplayPresentation != null) {
+            lastDisplayPresentation.dismiss();
         }
     }
 
     public boolean isShowBanner() {
-        if (mPresentation != null) {
-            return mPresentation.isShowing()&&curType==Contant.BANNER;
+        if (lastDisplayPresentation != null) {
+            return lastDisplayPresentation.isShowing() && curType == Contant.BANNER;
         }
         return false;
     }
@@ -218,6 +325,9 @@ public class MainActivity extends BaseActivity {
         orderFragment = new OrderFragment();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.fl_content, orderFragment).commitAllowingStateLoss();
+        if (!isShowBanner()) {
+            updatePresentation(Contant.BANNER);
+        }
         reSetButton(orderFragment);
     }
 
@@ -240,18 +350,6 @@ public class MainActivity extends BaseActivity {
             updatePresentation(Contant.BANNER);
         }
         reSetButton(publishFragment);
-    }
-
-    private void initSellFragment() {
-        if (sellFragment == null) {
-            sellFragment = new SellFragment();
-        }
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.fl_content, sellFragment).commitAllowingStateLoss();
-        if (!isShowBanner()) {
-            updatePresentation(Contant.BANNER);
-        }
-        reSetButton(sellFragment);
     }
 
     private void initDataFragment() {
@@ -278,6 +376,27 @@ public class MainActivity extends BaseActivity {
         reSetButton(settingFragment);
     }
 
+    private void initScanShowFragment() {
+        if (scanShowFragment == null) {
+            scanShowFragment = new ScanShowFragment();
+        }
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.fl_content, scanShowFragment).commitAllowingStateLoss();
+        updatePresentation(Contant.SCAN);
+    }
+
+    private void initSellFragment() {
+        if (sellFragment == null) {
+            sellFragment = new SellFragment();
+        }
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.fl_content, sellFragment).commitAllowingStateLoss();
+        if (!isShowBanner()) {
+            updatePresentation(Contant.BANNER);
+        }
+        reSetButton(sellFragment);
+    }
+
     private void initCodeResultFragment() {
         codeResultFragment = new CodeResultFragment();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
@@ -286,7 +405,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initVerifyFragment() {
-        if (verifyResultFragment==null){
+        if (verifyResultFragment == null) {
             verifyResultFragment = new VerifyResultFragment();
         }
         FragmentTransaction transaction = fragmentManager.beginTransaction();
@@ -294,7 +413,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initPassWordFragment() {
-        if (passWordFragment==null){
+        if (passWordFragment == null) {
             passWordFragment = new PassWordFragment();
         }
         FragmentTransaction transaction = fragmentManager.beginTransaction();
@@ -319,11 +438,11 @@ public class MainActivity extends BaseActivity {
             tvPublish.setTextColor(ContextCompat.getColor(this, R.color.color_text_2));
             ivPublishBg.setBackgroundResource(R.drawable.shape_circle_a_86);
             ivPublishIcon.setImageResource(R.drawable.main_4_s);
-        } else if (sellFragment == fragment) {
-            clSell.setBackgroundResource(R.drawable.shape_main_button_false);
-            tvSell.setTextColor(ContextCompat.getColor(this, R.color.color_text_2));
-            ivSellBg.setBackgroundResource(R.drawable.shape_circle_a_86);
-            ivSellIcon.setImageResource(R.drawable.main_5_s);
+        } else if (orderFragment == fragment) {
+            clOrder.setBackgroundResource(R.drawable.shape_main_button_false);
+            tvOrder.setTextColor(ContextCompat.getColor(this, R.color.color_text_2));
+            ivOrderBg.setBackgroundResource(R.drawable.shape_circle_a_86);
+            ivOrderIcon.setImageResource(R.drawable.main_4_s);
         } else if (dataFragment == fragment) {
             clData.setBackgroundResource(R.drawable.shape_main_button_false);
             tvData.setTextColor(ContextCompat.getColor(this, R.color.color_text_2));
@@ -334,16 +453,21 @@ public class MainActivity extends BaseActivity {
             tvSetting.setTextColor(ContextCompat.getColor(this, R.color.color_text_2));
             ivSettingBg.setBackgroundResource(R.drawable.shape_circle_a_86);
             ivSettingIcon.setImageResource(R.drawable.main_7_s);
+        } else if (sellFragment == fragment) {
+            clSell.setBackgroundResource(R.drawable.shape_main_button_false);
+            tvSell.setTextColor(ContextCompat.getColor(this, R.color.color_text_2));
+            ivSellBg.setBackgroundResource(R.drawable.shape_circle_a_86);
+            ivSellIcon.setImageResource(R.drawable.main_5_s);
         }
     }
 
     private void reSetScanBtn() {
         if (curType == Contant.SCAN) {
             clScan.setBackgroundResource(R.drawable.shape_scan_false);
-            tvScan.setText(getString(R.string.main_0));
+            ivScan.setImageResource(R.drawable.main_scan_2);
         } else {
             clScan.setBackgroundResource(R.drawable.shape_scan);
-            tvScan.setText(getString(R.string.main_1));
+            ivScan.setImageResource(R.drawable.main_scan_1);
         }
     }
 
@@ -356,6 +480,10 @@ public class MainActivity extends BaseActivity {
         clPublish.setBackgroundResource(R.drawable.shape_main_button_true);
         ivPublishBg.setBackgroundResource(R.drawable.shape_circle_a_40);
         ivPublishIcon.setImageResource(R.drawable.main_4);
+
+        clOrder.setBackgroundResource(R.drawable.shape_main_button_true);
+        ivOrderBg.setBackgroundResource(R.drawable.shape_circle_a_40);
+        ivOrderIcon.setImageResource(R.drawable.main_4);
 
         clSell.setBackgroundResource(R.drawable.shape_main_button_true);
         ivSellBg.setBackgroundResource(R.drawable.shape_circle_a_40);
@@ -370,25 +498,28 @@ public class MainActivity extends BaseActivity {
         ivSettingIcon.setImageResource(R.drawable.main_7);
 
         tvPublish.setTextColor(ContextCompat.getColor(this, R.color.color_white));
-        tvSell.setTextColor(ContextCompat.getColor(this, R.color.color_white));
+        tvOrder.setTextColor(ContextCompat.getColor(this, R.color.color_white));
         tvData.setTextColor(ContextCompat.getColor(this, R.color.color_white));
+        tvSell.setTextColor(ContextCompat.getColor(this, R.color.color_white));
         tvSetting.setTextColor(ContextCompat.getColor(this, R.color.color_white));
     }
 
-    @OnClick({R.id.cl_scan, R.id.cl_publish, R.id.cl_sell, R.id.cl_data, R.id.cl_setting})
+    @OnClick({R.id.cl_scan, R.id.cl_publish, R.id.cl_order, R.id.cl_data, R.id.cl_sell, R.id.cl_setting})
     void onClick(View view) {
         switch (view.getId()) {
             case R.id.cl_scan:
                 if (curType == Contant.SCAN) {
-                    updatePresentation(Contant.BANNER);
-                    reSetScanBtn();
-                } else {
-                    updatePresentation(Contant.SCAN);
                     initOrderFragment();
+                } else {
+                    initScanShowFragment();
                 }
+                reSetScanBtn();
                 break;
             case R.id.cl_publish:
                 initPublishFragment();
+                break;
+            case R.id.cl_order:
+                initOrderFragment();
                 break;
             case R.id.cl_sell:
                 initSellFragment();
@@ -404,7 +535,7 @@ public class MainActivity extends BaseActivity {
 
 
     private void verify(String code) {
-        verify =false;
+        verify = false;
         String[] split = code.split(",");
         showLoading();
         HashMap<String, String> hashMap = new HashMap<>();
@@ -413,7 +544,7 @@ public class MainActivity extends BaseActivity {
         hashMap.put("brcodet", split[2]);
         hashMap.put("token", SPUtils.getInstance().getString(Contant.ACCESS_TOKEN));
         RetrofitManager.getApi()
-                .verify(hashMap)
+                .verifyTrus(hashMap)
                 .compose(this.bindToLifecycle())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -421,7 +552,7 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onSuccess(ResponseBody<VerifyRes> response) {
                         hideLoading();
-                        verify=true;
+                        verify = true;
                         VerifyRes data = response.getData();
                         if (data != null) {
                             EventBus.getDefault().postSticky(data);
@@ -432,7 +563,7 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onFail(ResponseBody<VerifyRes> response) {
                         hideLoading();
-                        verify=true;
+                        verify = true;
                         int errorCode = response.getCode();
                         if (errorCode == 1) {
                             ToastUtils.showShort("查询失败");
@@ -446,20 +577,13 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onError(String s) {
                         hideLoading();
-                        verify=true;
+                        verify = true;
+                        initScanShowFragment();
                     }
                 });
     }
 
-    public void scan() {
-        if (cFragment == scannerFragment) {
-            updatePresentation(Contant.BANNER);
-            initOrderFragment();
-        } else {
-            initScannerFragment();
-            dissmissScreen();
-        }
-    }
+
 
     private class PrintThread extends Thread {
         Map<String, String> printMap;
@@ -506,7 +630,7 @@ public class MainActivity extends BaseActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void receiveFragment(EventFragment data) {
-        switch (data.getType()){
+        switch (data.getType()) {
             case Contant.F_ORDER:
                 initOrderFragment();
                 break;
@@ -519,9 +643,6 @@ public class MainActivity extends BaseActivity {
             case Contant.F_DATA:
                 initDataFragment();
                 break;
-            case Contant.F_SELL:
-                initSellFragment();
-                break;
             case Contant.F_SETTING:
                 initSettingFragment();
                 break;
@@ -531,15 +652,20 @@ public class MainActivity extends BaseActivity {
             case Contant.F_PASSWORD:
                 initPassWordFragment();
                 break;
+            case Contant.F_SELL:
+                initSellFragment();
+                break;
+            case Contant.F_SCANSHOW:
+                initScanShowFragment();
+                break;
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        LogUtils.d("onDestroy");
         USBPrinter.getInstance().closeDevice();
-        if (EventBus.getDefault().isRegistered(this)){
+        if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this);
         }
         dissmissScreen();

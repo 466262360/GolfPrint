@@ -96,7 +96,6 @@ public final class CameraManager {
             this.configManager.setDesiredCameraParameters(camera);
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this.context);
             FlashlightManager.enableFlashlight();
-            System.out.println("enableFlashlight");
             Log.d(TAG, "openDriver: camera setup OK.");
         }
 
@@ -105,7 +104,6 @@ public final class CameraManager {
     public void closeDriver() {
         if (camera != null) {
             FlashlightManager.disableFlashlight();
-            System.out.println("disableFlashlight");
             camera.release();
             camera = null;
         }

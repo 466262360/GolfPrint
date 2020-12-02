@@ -2,6 +2,7 @@ package com.mashangyou.golfprint.ui.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
@@ -30,6 +31,7 @@ import com.mashangyou.golfprint.bean.res.ResponseBody;
 import com.mashangyou.golfprint.bean.res.VerifyRes;
 import com.mashangyou.golfprint.interfac.OnButtonClick;
 import com.mashangyou.golfprint.ui.activity.MainActivity;
+import com.mashangyou.golfprint.usbsdk.PrintStatesCallback;
 import com.mashangyou.golfprint.util.SerializableMap;
 import com.mashangyou.golfprint.util.USBPrinter;
 
@@ -42,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.Group;
@@ -100,7 +103,18 @@ public class CodeResultFragment extends BaseFragment {
             ((MainActivity) getActivity()).setTopTitle(getString(R.string.title_6));
         }
         EventBus.getDefault().post(new EventScreen(Contant.CODE_RESULT));
-        isUse=true;
+        USBPrinter.getInstance().setOnCallBack(new PrintStatesCallback() {
+            @Override
+            public void success() {
+                if (isUse) use();
+            }
+
+            @Override
+            public void error(String error) {
+                isUse=false;
+                ToastUtils.showShort(error);
+            }
+        });
     }
 
     @OnClick({R.id.btn_cancel, R.id.btn_confirm, R.id.btn_back})
@@ -109,11 +123,11 @@ public class CodeResultFragment extends BaseFragment {
             case R.id.btn_cancel:
             case R.id.btn_back:
                 EventBus.getDefault().post(new EventFragment(Contant.F_ORDER));
-                EventBus.getDefault().post(new EventScreen(Contant.BANNER));
                 break;
             case R.id.btn_confirm:
-                if (!TextUtils.isEmpty(orderId) && currentOrders != null&&isUse) {
-                    use();
+                if (!TextUtils.isEmpty(orderId) && currentOrders != null) {
+                    isUse=true;
+                    USBPrinter.getInstance().checkPrint();
                 } else {
                     ToastUtils.showShort(getString(R.string.code_result_17));
                 }
@@ -136,7 +150,6 @@ public class CodeResultFragment extends BaseFragment {
                     @Override
                     public void onSuccess(ResponseBody response) {
                         hideLoading();
-                        isUse =true;
                         sendPrint();
                         EventBus.getDefault().postSticky(new EventVerifyResult(orderId, getDate(currentOrders.getPlayTime())));
                         EventBus.getDefault().post(new EventFragment(Contant.F_VERIFY));
@@ -145,7 +158,6 @@ public class CodeResultFragment extends BaseFragment {
                     @Override
                     public void onFail(ResponseBody response) {
                         hideLoading();
-                        isUse =true;
                         EventBus.getDefault().postSticky(new EventVerifyResult(null, null));
                         EventBus.getDefault().post(new EventFragment(Contant.F_VERIFY));
                     }
@@ -153,7 +165,6 @@ public class CodeResultFragment extends BaseFragment {
                     @Override
                     public void onError(String s) {
                         hideLoading();
-                        isUse =true;
                     }
                 });
     }
@@ -170,18 +181,44 @@ public class CodeResultFragment extends BaseFragment {
         hashMap.put(Contant.PRINT_GOLFNAME, currentOrders.getGolfName());
         hashMap.put(Contant.PRINT_FREQUENCY, currentOrders.getFrequency());
         hashMap.put(Contant.PRINT_CURRENT_DATE, TimeUtils.getNowString(format));
-//        SerializableMap map = new SerializableMap();
-//        map.setMap(hashMap);
-//        Bundle bundle = new Bundle();
-//        bundle.putSerializable(Contant.PRINT_MAP, map);
-//        Intent intent = new Intent();
-//        intent.setAction(Contant.PRINT_ACTION);
-//        intent.putExtra(Contant.PRINT_MAP, bundle);
-//        mContext.sendBroadcast(intent);
-        EventBus.getDefault().post(new EventPrint(hashMap));
+        hashMap.put(Contant.PRINT_INTERESTFACY, currentOrders.getInterestfacy());
+        hashMap.put(Contant.PRINT_INTERESTGROUP, currentOrders.getInterestGroup());
+        hashMap.put(Contant.PRINT_MEMBER, currentOrders.getMember());
+        hashMap.put(Contant.PRINT_GROUP, currentOrders.getGroup());
+        hashMap.put(Contant.PRINT_GUEST, currentOrders.getGuest());
+        hashMap.put(Contant.PRINT_MEMBERPRICE, currentOrders.getMemberPrice());
+        hashMap.put(Contant.PRINT_GROUPPRICE, currentOrders.getGroupPrice());
+        hashMap.put(Contant.PRINT_GUESTPRICE, currentOrders.getGuestPrice());
+        new PrintThread(hashMap).start();
     }
 
+    private class PrintThread extends Thread {
+        Map<String, String> printMap;
 
+        public PrintThread(Map<String, String> map) {
+            printMap = map;
+        }
+
+        public void run() {
+            try {
+                Looper.prepare();
+                USBPrinter.getInstance().printContent(printMap);
+                //USBPrinter.getInstance().printTest();
+                Looper.loop();
+            } catch (Exception e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            } finally {
+                try {
+                    sleep(4 * 1000);
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+            }
+        }
+    }
 
     @Subscribe(threadMode = ThreadMode.POSTING, sticky = true)
     public void receive(VerifyRes data) {
@@ -251,6 +288,7 @@ public class CodeResultFragment extends BaseFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (EventBus.getDefault().isRegistered(this))
         EventBus.getDefault().unregister(this);
     }
 }

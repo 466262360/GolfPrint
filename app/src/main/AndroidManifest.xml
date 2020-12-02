@@ -40,6 +40,18 @@
         <activity android:name=".ui.activity.LoginActivity"
             android:windowSoftInputMode="stateAlwaysHidden"
             />
+
+        <service android:name=".service.DownLoadService" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
     </application>
 
 </manifest>

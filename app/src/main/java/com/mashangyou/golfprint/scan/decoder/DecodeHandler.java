@@ -11,7 +11,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
-import com.blankj.utilcode.util.LogUtils;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.MultiFormatReader;
 import com.mashangyou.golfprint.scan.ScannerView;
@@ -21,8 +20,8 @@ import com.mashangyou.golfprint.scan.camera.PlanarYUVLuminanceSource;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import cn.bigcode.tcodedecoder.DecoderResult;
-import cn.bigcode.tcodedecoder.TCodeDecoder;
+import cn.bigcode.decoder.ScanResult;
+import cn.bigcode.decoder.SecureCodeDecoder;
 
 import static com.mashangyou.golfprint.scan.decoder.DecodeThread.BARCODE_BITMAP;
 
@@ -103,16 +102,27 @@ final class DecodeHandler extends Handler {
      * @return
      */
     private void decodeTCode(PlanarYUVLuminanceSource source, long start) {
+        String qrResult="";
+        String resultCode="";
         Bitmap bitmap = source.renderCroppedGreyscaleBitmap();
         byte[] rgbBuf = getRgbBuf(bitmap, bitmap.getHeight(), bitmap.getWidth());
+        //createFileWithByte(rgbBuf);
         try {
-            DecoderResult scanResult = TCodeDecoder.decoder(rgbBuf, bitmap.getWidth(), bitmap.getHeight(), 2);
+            ScanResult scanResult = SecureCodeDecoder.decode(rgbBuf, bitmap.getWidth(), bitmap.getHeight(), 2, 3);
             if (scanResult != null) {
-                decodeResultCode=scanResult.tcodeLen;
+                decodeResultCode=scanResult.qrlen;
                 if (decodeResultCode > 0) {
-                    resultCode = new String(scanResult.tcode);
-                    hashSet.add(resultCode);
-                    //10秒扫码时间
+                    if (scanResult.secureLen > 0) {
+                        resultCode = new String(scanResult.secureCode);
+                    }
+
+                    if (scanResult.qrlen > 0) {
+                        String encoding = getEncoding(scanResult.qrcode);
+                        qrResult = new String(scanResult.qrcode, encoding).replace("\\n", "\n");
+                    }
+                    if ("7102397021".equals(resultCode)){
+                        hashSet.add(qrResult);
+                    }
                     if (hashSet.size()==1){
                         this.postDelayed(new Runnable() {
                             @Override
@@ -125,12 +135,15 @@ final class DecodeHandler extends Handler {
                         StringBuffer buffer = new StringBuffer();
                         for(String i : hashSet){
                             buffer.append(i+",");
+                            System.out.println(i);
                         }
+                        Message message1 = Message.obtain(this.scannerView.getHandler(), 101, buffer.toString());
+                        Bundle bundle = new Bundle();
+                        bundle.putParcelable(BARCODE_BITMAP, bitmap);
+                        message1.setData(bundle);
+                        message1.sendToTarget();
                         hashSet.clear();
-                        if (isSend)
-                        send(buffer,bitmap);
-                        LogUtils.d("buffer"+buffer);
-                        //decodeResultCode = -1;
+                        decodeResultCode = -1;
                     }else{
                         decodeResultCode = -1;
                         Message var23 = Message.obtain(this.scannerView.getHandler(), 4);
@@ -150,13 +163,18 @@ final class DecodeHandler extends Handler {
 
     }
 
-    private void send(StringBuffer buffer, Bitmap bitmap) {
-        isSend =false;
-        Message message1 = Message.obtain(this.scannerView.getHandler(), 101, buffer.toString());
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(BARCODE_BITMAP, bitmap);
-        message1.setData(bundle);
-        message1.sendToTarget();
+    private String getEncoding(byte[] bytes) {
+        String DEFAULT_ENCODING = "UTF-8";
+        org.mozilla.universalchardet.UniversalDetector detector =
+                new org.mozilla.universalchardet.UniversalDetector(null);
+        detector.handleData(bytes, 0, bytes.length);
+        detector.dataEnd();
+        String encoding = detector.getDetectedCharset();
+        detector.reset();
+        if (encoding == null) {
+            encoding = DEFAULT_ENCODING;
+        }
+        return encoding;
     }
 
 

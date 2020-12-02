@@ -27,8 +27,7 @@ public class ScannerFragment extends Fragment implements OnDecodeCompletionListe
 
     ScannerView cScannerView;
     public static final String SCANRES = "scan_res";
-    public static final String MESSAGE_ACTION = "com.mashangyou.wanliu.barCode";
-    public static final String MESSAGE_BARCODE = "com.mashangyou.wanliu.barCodeMessage";
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -54,15 +53,5 @@ public class ScannerFragment extends Fragment implements OnDecodeCompletionListe
     @Override
     public void onDecodeCompletion(String code) {
 
-        if (!TextUtils.isEmpty(code)) {
-            Intent intent = new Intent();
-            intent.setAction(MESSAGE_ACTION);
-            intent.putExtra(MESSAGE_BARCODE, code);
-            EventBus.getDefault().post(new EventCode(code));
-            //getActivity().sendBroadcast(intent);
-            LogUtils.d("abc","sendBroadcast="+code);
-        } else {
-            Toast.makeText(getContext(), "解析错误", Toast.LENGTH_SHORT).show();
-        }
     }
 }
