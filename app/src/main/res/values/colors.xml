@@ -46,4 +46,5 @@
     <color name="color_text_a_60">#99333333</color>
     <color name="color_line_a_10">#1A000000</color>
     <color name="color_update_app">#282828</color>
+    <color name="green">#0AF429</color>
 </resources>

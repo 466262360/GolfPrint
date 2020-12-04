@@ -1,2 +1,4 @@
+include ':zxing'
+include ':qrcodecore'
 include ':app', ':scan'
 rootProject.name='GolfPrint'

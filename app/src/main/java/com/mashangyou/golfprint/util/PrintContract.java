@@ -37,7 +37,7 @@ public class PrintContract {
         builder.append(PrintFormatUtils.getFontBoldCmd(PrintFormatUtils.FONT_BOLD_CANCEL));
 
         //内容
-        builder.append("会籍身份");
+        builder.append("会籍信息");
         addLineSeparator(builder);
         builder.append("姓名：     " + hashMap.get(Contant.PRINT_NAME));
         addLineSeparator(builder);
@@ -95,7 +95,7 @@ public class PrintContract {
             guest= Integer.parseInt(hashMap.get(Contant.PRINT_GUEST));
         }
         if (member+group+guest>0){
-            builder.append("本次扣减：");
+            builder.append("本次扣减： ");
 
             if (member>0&&group==0&&guest==0){
                 builder.append("会员"+member+"场");
@@ -112,7 +112,7 @@ public class PrintContract {
             }else if(member>0&&group>0&&guest>0){
                 builder.append("会员"+member+"场   会待"+group+"场");
                 addLineSeparator(builder);
-                builder.append("          嘉宾"+guest+"场");
+                builder.append("           嘉宾"+guest+"场");
             }
             addLineSeparator(builder);
         }
@@ -127,7 +127,7 @@ public class PrintContract {
             interestGroup = Integer.parseInt(hashMap.get(Contant.PRINT_INTERESTGROUP));
         }
         if (interestfacy+interestGroup>0){
-            builder.append("年度剩余：");
+            builder.append("年度剩余： ");
 
             if (interestfacy>0&&interestGroup==0){
                 builder.append("会员"+interestfacy+"场");
@@ -155,7 +155,7 @@ public class PrintContract {
             guestPrice= Double.parseDouble(hashMap.get(Contant.PRINT_GUESTPRICE));
         }
         if (memberPrice+groupPrice+guestPrice>0){
-            builder.append("参考金额：");
+            builder.append("参考金额： ");
 
             if (memberPrice>0&&groupPrice==0&&guestPrice==0){
                 builder.append("会员"+memberPrice+"元");
@@ -166,21 +166,21 @@ public class PrintContract {
             }else if(memberPrice>0&&groupPrice>0&&guestPrice==0){
                 builder.append("会员"+memberPrice+"元");
                 addLineSeparator(builder);
-                builder.append("          会待"+groupPrice+"元");
+                builder.append("           会待"+groupPrice+"元");
             }else if(memberPrice>0&&groupPrice==0&&guestPrice>0){
                 builder.append("会员"+memberPrice+"元");
                 addLineSeparator(builder);
-                builder.append("          嘉宾"+guestPrice+"元");
+                builder.append("           嘉宾"+guestPrice+"元");
             }else if(memberPrice==0&&groupPrice>0&&guestPrice>0){
                 builder.append("会待"+groupPrice+"元");
                 addLineSeparator(builder);
-                builder.append("          嘉宾"+guestPrice+"元");
+                builder.append("           嘉宾"+guestPrice+"元");
             }else if(memberPrice>0&&groupPrice>0&&guestPrice>0){
                 builder.append("会员"+memberPrice+"元");
                 addLineSeparator(builder);
-                builder.append("          会待"+groupPrice+"元");
+                builder.append("           会待"+groupPrice+"元");
                 addLineSeparator(builder);
-                builder.append("          嘉宾"+guestPrice+"元");
+                builder.append("           嘉宾"+guestPrice+"元");
             }
             addLineSeparator(builder);
         }

@@ -6,7 +6,6 @@ package com.mashangyou.golfprint.scan;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
@@ -18,7 +17,6 @@ import android.os.Handler;
 import android.os.Vibrator;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.SurfaceHolder;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +24,7 @@ import android.widget.FrameLayout;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
+import com.mashangyou.golfprint.R;
 import com.mashangyou.golfprint.scan.camera.CameraManager;
 import com.mashangyou.golfprint.scan.decoder.CaptureActivityHandler;
 import com.mashangyou.golfprint.scan.view.ViewfinderView;
@@ -141,7 +140,7 @@ public class ScannerView extends FrameLayout implements TextureView.SurfaceTextu
         this.decodeFormats = null;
         this.characterSet = null;
         this.playBeep = true;
-        AudioManager audioService = (AudioManager) this.context.getSystemService("audio");
+        AudioManager audioService = (AudioManager) this.context.getSystemService(Context.AUDIO_SERVICE);
         if (audioService.getRingerMode() != 2) {
             this.playBeep = false;
         }
@@ -216,10 +215,9 @@ public class ScannerView extends FrameLayout implements TextureView.SurfaceTextu
             this.mediaPlayer = new MediaPlayer();
             this.mediaPlayer.setAudioStreamType(3);
             this.mediaPlayer.setOnCompletionListener(this.beepListener);
-
             try {
-                AssetManager e = this.context.getAssets();
-                AssetFileDescriptor file = e.openFd("beepbeep.ogg");
+                AssetFileDescriptor file = context.getResources().openRawResourceFd(
+                        R.raw.beep);
                 this.mediaPlayer.setDataSource(file.getFileDescriptor(), file.getStartOffset(), file.getLength());
                 file.close();
                 this.mediaPlayer.setVolume(0.8F, 0.8F);
@@ -229,7 +227,7 @@ public class ScannerView extends FrameLayout implements TextureView.SurfaceTextu
                 System.out.println(var3.getMessage());
             }
         } else {
-            System.out.println("________________________木有播放");
+            System.out.println("木有播放");
         }
 
         System.out.println("-------:" + this.context);

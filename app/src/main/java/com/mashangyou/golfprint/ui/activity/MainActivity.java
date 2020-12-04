@@ -36,6 +36,7 @@ import com.mashangyou.golfprint.interfac.UpdatePb;
 import com.mashangyou.golfprint.scan.ScannerFragment;
 import com.mashangyou.golfprint.secondScreen.BannerScreen;
 import com.mashangyou.golfprint.secondScreen.CodeResultScreen;
+import com.mashangyou.golfprint.secondScreen.ScanQRScreen;
 import com.mashangyou.golfprint.secondScreen.ScanScreen;
 import com.mashangyou.golfprint.secondScreen.VerifyScreen;
 import com.mashangyou.golfprint.service.DownLoadService;
@@ -285,7 +286,10 @@ public class MainActivity extends BaseActivity {
                     curType = Contant.VERIFY;
                     break;
                 case Contant.SCAN:
-                    mPresentation = new ScanScreen(this, presentationDisplay);
+//                    mPresentation = new ScanScreen(this, presentationDisplay);
+//                    curType = Contant.SCAN;
+//                    reSetScanBtn();
+                    mPresentation = new ScanQRScreen(this, presentationDisplay);
                     curType = Contant.SCAN;
                     reSetScanBtn();
                     break;
