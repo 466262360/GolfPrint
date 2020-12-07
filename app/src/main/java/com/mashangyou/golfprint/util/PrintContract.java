@@ -57,10 +57,10 @@ public class PrintContract {
         reduce(builder,hashMap);
         //年度剩余
         frequency(builder,hashMap);
-        //参考金额
-        money(builder,hashMap);
         builder.append("核销时间： " + hashMap.get(Contant.PRINT_CURRENT_DATE));
         addLineSeparator(builder);
+        //参考金额
+        money(builder,hashMap);
         addLineSeparator(builder);
         builder.append("会员签名");
         addLineSeparator(builder);
@@ -137,6 +137,7 @@ public class PrintContract {
                 builder.append("会员"+interestfacy+"场   会待"+interestGroup+"场");
             }
 
+            addLineSeparator(builder);
             addLineSeparator(builder);
         }
 
